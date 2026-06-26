@@ -10,12 +10,59 @@ import {
   updateProduct,
   deleteProduct,
 } from "@/lib/services/product.service";
+import { listAttributes } from "@/lib/services/attribute.service";
+import { setProductAttributeValues } from "@/lib/services/attribute-value.service";
 
 /** Result returned to the form via useActionState. */
 export type ProductFormState = {
   error?: string;
   fieldErrors?: Record<string, string[] | undefined>;
 };
+
+/** Result of saving a product's dynamic attribute values. */
+export type AttributeValuesState = { ok?: boolean; error?: string };
+
+/**
+ * Saves the dynamic attribute values for a product. Reads the attribute
+ * definitions to coerce each form field by its type before storing.
+ */
+export async function saveProductAttributesAction(
+  productId: string,
+  _prev: AttributeValuesState,
+  formData: FormData
+): Promise<AttributeValuesState> {
+  try {
+    const attributes = await listAttributes();
+    const values: Record<string, unknown> = {};
+
+    for (const attr of attributes) {
+      const field = `attr_${attr.id}`;
+      const raw = formData.get(field);
+      switch (attr.type) {
+        case "number": {
+          const num = typeof raw === "string" && raw.trim() ? Number(raw) : null;
+          values[attr.id] = num === null || Number.isNaN(num) ? null : num;
+          break;
+        }
+        case "boolean":
+          values[attr.id] = raw === "on";
+          break;
+        default:
+          values[attr.id] =
+            typeof raw === "string" && raw.trim() ? raw.trim() : null;
+      }
+    }
+
+    await setProductAttributeValues(productId, values);
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "שגיאה בשמירת המאפיינים",
+    };
+  }
+
+  revalidatePath(`/products/${productId}`);
+  return { ok: true };
+}
 
 function parse(formData: FormData) {
   return productInputSchema.safeParse({
