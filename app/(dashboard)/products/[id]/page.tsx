@@ -7,6 +7,7 @@ import { DeleteProductButton } from "@/components/products/delete-product-button
 import { ProductAttributes } from "@/components/products/product-attributes";
 import { ProductComponents } from "@/components/products/product-components";
 import { ProductSuppliers } from "@/components/products/product-suppliers";
+import { ProductVariants } from "@/components/products/product-variants";
 import { getProduct } from "@/lib/services/product.service";
 import { listAttributes } from "@/lib/services/attribute.service";
 import { getProductAttributeValues } from "@/lib/services/attribute-value.service";
@@ -17,6 +18,7 @@ import {
 import { listProductSuppliers } from "@/lib/services/product-supplier.service";
 import { listSuppliers } from "@/lib/services/supplier.service";
 import { listClassificationTree } from "@/lib/services/classification.service";
+import { listSizes, listColors } from "@/lib/services/variant.service";
 import { updateProductAction } from "../actions";
 
 export default async function EditProductPage({
@@ -41,6 +43,8 @@ export default async function EditProductPage({
     productSuppliers,
     suppliers,
     tree,
+    sizes,
+    colors,
   ] = await Promise.all([
     listAttributes(),
     getProductAttributeValues(id),
@@ -49,6 +53,8 @@ export default async function EditProductPage({
     listProductSuppliers(id),
     listSuppliers(),
     listClassificationTree(),
+    isFinished ? listSizes(id) : Promise.resolve([]),
+    isFinished ? listColors(id) : Promise.resolve([]),
   ]);
 
   const action = updateProductAction.bind(null, id);
@@ -90,6 +96,24 @@ export default async function EditProductPage({
           suppliers={suppliers}
         />
       </section>
+
+      {isFinished && (
+        <section className="space-y-4 border-t pt-8">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">וריאנטים</h2>
+            <p className="text-muted-foreground text-sm">
+              גדלים (מחיר לכל גודל) וצבעים (אות לועזית למק&quot;ט). השילובים
+              הם הוריאנטים למכירה.
+            </p>
+          </div>
+          <ProductVariants
+            productId={product.id}
+            sizes={sizes}
+            colors={colors}
+            salePrice={product.salePrice}
+          />
+        </section>
+      )}
 
       {isFinished && (
         <section className="space-y-4 border-t pt-8">

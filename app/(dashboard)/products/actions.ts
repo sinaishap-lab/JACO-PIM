@@ -20,6 +20,12 @@ import {
   addProductSupplier,
   removeProductSupplier,
 } from "@/lib/services/product-supplier.service";
+import {
+  addSize,
+  removeSize,
+  addColor,
+  removeColor,
+} from "@/lib/services/variant.service";
 
 /** Result returned to the form via useActionState. */
 export type ProductFormState = {
@@ -187,5 +193,45 @@ export async function removeProductSupplierAction(
   rowId: string
 ): Promise<void> {
   await removeProductSupplier(rowId);
+  revalidatePath(`/products/${productId}`);
+}
+
+// ── Variants (sizes & colors) ───────────────────────────────────────────────
+
+export async function addSizeAction(
+  productId: string,
+  formData: FormData
+): Promise<void> {
+  const value = toText(formData.get("value"));
+  if (!value) return;
+  await addSize(productId, value, toPrice(formData.get("price")));
+  revalidatePath(`/products/${productId}`);
+}
+
+export async function removeSizeAction(
+  productId: string,
+  id: string
+): Promise<void> {
+  await removeSize(id);
+  revalidatePath(`/products/${productId}`);
+}
+
+export async function addColorAction(
+  productId: string,
+  formData: FormData
+): Promise<void> {
+  const value = toText(formData.get("value"));
+  if (!value) return;
+  const letterRaw = toText(formData.get("letter"));
+  const letter = letterRaw ? letterRaw.slice(0, 3).toUpperCase() : null;
+  await addColor(productId, value, letter);
+  revalidatePath(`/products/${productId}`);
+}
+
+export async function removeColorAction(
+  productId: string,
+  id: string
+): Promise<void> {
+  await removeColor(id);
   revalidatePath(`/products/${productId}`);
 }
