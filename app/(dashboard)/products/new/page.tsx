@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import { ProductForm } from "@/components/products/product-form";
-import { createProductAction } from "../actions";
+import { NewProductFlow } from "@/components/products/new-product-flow";
 
 export default function NewProductPage() {
   return (
@@ -16,10 +15,10 @@ export default function NewProductPage() {
           חזרה למוצרים
         </Link>
         <h1 className="text-2xl font-bold tracking-tight">מוצר חדש</h1>
-        <p className="text-muted-foreground">הוספת מוצר לקטלוג</p>
+        <p className="text-muted-foreground">צלמו את המוצר או מלאו ידנית</p>
       </header>
 
-      <ProductForm action={createProductAction} />
+      <NewProductFlow />
     </div>
   );
 }
