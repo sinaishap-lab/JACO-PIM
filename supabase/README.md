@@ -33,20 +33,8 @@ npx supabase gen types typescript --linked > lib/types/database.ts
 
 ## 4. Storage for media
 
-The app auto-creates a public `product-media` Storage bucket on the first image
-upload — no manual step needed. (You can also pre-create it in the Storage UI.)
-
-## 5. Anthropic API key (AI photo onboarding)
-
-Creating a product can start from a photo: Claude analyzes the image and
-pre-fills the fields. This needs an Anthropic API key:
-
-1. Create a key at [console.anthropic.com](https://console.anthropic.com) →
-   **Settings → API Keys**.
-2. Add it to `.env.local` as `ANTHROPIC_API_KEY`.
-
-Without the key, manual product entry still works; only the photo analysis is
-disabled.
+A Storage bucket for product images will be added when the media module is
+built. No action needed yet.
 
 ## Notes
 
