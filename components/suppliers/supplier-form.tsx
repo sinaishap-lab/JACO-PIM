@@ -37,18 +37,35 @@ export function SupplierForm({
         </div>
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="name">שם הספק *</Label>
-        <Input
-          id="name"
-          name="name"
-          defaultValue={supplier?.name}
-          aria-invalid={Boolean(state.fieldErrors?.name)}
-          placeholder="לדוגמה: דפוס הצפון בע״מ"
-        />
-        {state.fieldErrors?.name && (
-          <p className={errorText}>{state.fieldErrors.name[0]}</p>
-        )}
+      <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+        <div className="space-y-2">
+          <Label htmlFor="name">שם הספק *</Label>
+          <Input
+            id="name"
+            name="name"
+            defaultValue={supplier?.name}
+            aria-invalid={Boolean(state.fieldErrors?.name)}
+            placeholder="לדוגמה: דפוס הצפון בע״מ"
+          />
+          {state.fieldErrors?.name && (
+            <p className={errorText}>{state.fieldErrors.name[0]}</p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="code">קוד (למק&quot;ט)</Label>
+          <Input
+            id="code"
+            name="code"
+            dir="ltr"
+            defaultValue={supplier?.code ?? ""}
+            className="w-28 font-mono uppercase"
+            placeholder="DH"
+            aria-invalid={Boolean(state.fieldErrors?.code)}
+          />
+          {state.fieldErrors?.code && (
+            <p className={errorText}>{state.fieldErrors.code[0]}</p>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

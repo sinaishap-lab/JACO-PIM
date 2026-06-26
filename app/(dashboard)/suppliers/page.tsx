@@ -94,6 +94,7 @@ export default async function SuppliersPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>שם</TableHead>
+                <TableHead>קוד</TableHead>
                 <TableHead>איש קשר</TableHead>
                 <TableHead>טלפון</TableHead>
               </TableRow>
@@ -108,6 +109,9 @@ export default async function SuppliersPage() {
                     >
                       {s.name}
                     </Link>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground font-mono text-xs">
+                    {s.code ?? "—"}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {s.contactName ?? "—"}

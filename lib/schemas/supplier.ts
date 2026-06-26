@@ -7,6 +7,7 @@ export const supplierInputSchema = z.object({
     .trim()
     .min(1, "שם הספק הוא שדה חובה")
     .max(120, "שם ארוך מדי"),
+  code: z.string().trim().max(10, "קוד קצר מדי עדיף").nullable(),
   contactName: z.string().trim().max(120).nullable(),
   phone: z.string().trim().max(40).nullable(),
   email: z

@@ -7,6 +7,7 @@ import type { SupplierInput } from "@/lib/schemas/supplier";
 interface SupplierRow {
   id: string;
   name: string;
+  code: string | null;
   contact_name: string | null;
   phone: string | null;
   email: string | null;
@@ -17,6 +18,7 @@ function toSupplier(row: SupplierRow): Supplier {
   return {
     id: row.id,
     name: row.name,
+    code: row.code,
     contactName: row.contact_name,
     phone: row.phone,
     email: row.email,
@@ -27,6 +29,7 @@ function toSupplier(row: SupplierRow): Supplier {
 function toRow(input: SupplierInput) {
   return {
     name: input.name,
+    code: input.code || null,
     contact_name: input.contactName || null,
     phone: input.phone || null,
     email: input.email || null,

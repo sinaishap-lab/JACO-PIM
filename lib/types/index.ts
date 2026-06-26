@@ -62,6 +62,8 @@ export interface ProductComponent {
 export interface Supplier {
   id: string;
   name: string;
+  /** Short code (English) used as the SKU prefix, e.g. "DH". */
+  code: string | null;
   contactName: string | null;
   phone: string | null;
   email: string | null;
