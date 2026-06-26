@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { productTypeLabels } from "@/lib/schemas/product";
+import { productTypeLabels, usageUnitOptions } from "@/lib/schemas/product";
 import type { ProductFormState } from "@/app/(dashboard)/products/actions";
 import type { Product, ProductType } from "@/lib/types";
 
@@ -40,8 +40,25 @@ export function ProductForm({
     FormData
   >(action, {});
   const [type, setType] = useState<ProductType>(product?.type ?? "finished");
+  const [costStr, setCostStr] = useState(
+    product?.costPrice != null ? String(product.costPrice) : ""
+  );
+  const [contentStr, setContentStr] = useState(
+    product?.contentAmount != null ? String(product.contentAmount) : ""
+  );
+  const [usageUnit, setUsageUnit] = useState(product?.usageUnit ?? "יחידה");
 
   const errorText = "text-destructive text-sm";
+
+  // Live per-unit cost for raw materials: package price ÷ content amount.
+  const costNum = parseFloat(costStr);
+  const contentNum = parseFloat(contentStr);
+  const unitCost =
+    !Number.isNaN(costNum) && contentNum > 0
+      ? costNum / contentNum
+      : !Number.isNaN(costNum)
+        ? costNum
+        : null;
 
   return (
     <form action={formAction} className="max-w-2xl space-y-6">
@@ -119,21 +136,80 @@ export function ProductForm({
           )}
         </div>
       ) : (
-        <div className="space-y-2">
-          <Label htmlFor="costPrice">מחיר עלות (₪)</Label>
-          <Input
-            id="costPrice"
-            name="costPrice"
-            type="number"
-            step="0.01"
-            min="0"
-            defaultValue={product?.costPrice ?? ""}
-            aria-invalid={Boolean(state.fieldErrors?.costPrice)}
-            placeholder="0.00"
-          />
-          {state.fieldErrors?.costPrice && (
-            <p className={errorText}>{state.fieldErrors.costPrice[0]}</p>
-          )}
+        <div className="space-y-4 rounded-lg border p-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="costPrice">מחיר לאריזה (₪)</Label>
+              <Input
+                id="costPrice"
+                name="costPrice"
+                type="number"
+                step="0.01"
+                min="0"
+                value={costStr}
+                onChange={(e) => setCostStr(e.target.value)}
+                aria-invalid={Boolean(state.fieldErrors?.costPrice)}
+                placeholder="0.00"
+              />
+              {state.fieldErrors?.costPrice && (
+                <p className={errorText}>{state.fieldErrors.costPrice[0]}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="packUnit">יחידת רכישה</Label>
+              <Input
+                id="packUnit"
+                name="packUnit"
+                defaultValue={product?.packUnit ?? ""}
+                placeholder="גליל / פלטה / אריזה"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contentAmount">כמות באריזה</Label>
+              <Input
+                id="contentAmount"
+                name="contentAmount"
+                type="number"
+                step="any"
+                min="0"
+                value={contentStr}
+                onChange={(e) => setContentStr(e.target.value)}
+                aria-invalid={Boolean(state.fieldErrors?.contentAmount)}
+                placeholder="לדוגמה: 50"
+              />
+              {state.fieldErrors?.contentAmount && (
+                <p className={errorText}>
+                  {state.fieldErrors.contentAmount[0]}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="usageUnit">יחידת שימוש</Label>
+              <select
+                id="usageUnit"
+                name="usageUnit"
+                value={usageUnit}
+                onChange={(e) => setUsageUnit(e.target.value)}
+                className={selectClass}
+              >
+                {usageUnitOptions.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="bg-muted/50 rounded-md px-3 py-2 text-sm">
+            עלות ליחידה:{" "}
+            <span className="font-semibold">
+              {unitCost == null
+                ? "—"
+                : `₪${unitCost.toLocaleString("he-IL", {
+                    maximumFractionDigits: 4,
+                  })} / ${usageUnit}`}
+            </span>
+          </div>
         </div>
       )}
 

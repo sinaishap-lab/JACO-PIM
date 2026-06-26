@@ -31,7 +31,25 @@ export const productInputSchema = z.object({
   type: productTypeSchema.default("finished"),
   costPrice: priceField,
   salePrice: priceField,
+  packUnit: z.string().trim().max(40).nullable(),
+  contentAmount: z
+    .number({ message: "כמות חייבת להיות מספר" })
+    .positive("כמות חייבת להיות גדולה מ-0")
+    .nullable(),
+  usageUnit: z.string().trim().max(40).nullable(),
 });
+
+/** Common units a raw material can be consumed in. */
+export const usageUnitOptions = [
+  "יחידה",
+  "מטר",
+  'מ"ר',
+  'ס"מ',
+  'ק"ג',
+  "גרם",
+  "ליטר",
+  'מ"ל',
+];
 
 /** Input accepted by create/update actions. */
 export type ProductInput = z.infer<typeof productInputSchema>;

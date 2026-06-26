@@ -40,6 +40,12 @@ export interface Product {
   costPrice: number | null;
   /** Selling price (finished products). */
   salePrice: number | null;
+  /** Raw materials: what you buy (e.g. "גליל", "פלטה"). */
+  packUnit: string | null;
+  /** Raw materials: usage units contained in one package (e.g. 50). */
+  contentAmount: number | null;
+  /** Raw materials: how it is consumed (e.g. "מטר", 'מ"ר'). */
+  usageUnit: string | null;
   createdAt: string;
   updatedAt: string;
 }

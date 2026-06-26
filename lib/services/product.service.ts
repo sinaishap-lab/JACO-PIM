@@ -23,6 +23,9 @@ interface ProductRow {
   type: Product["type"];
   cost_price: number | string | null;
   sale_price: number | string | null;
+  pack_unit: string | null;
+  content_amount: number | string | null;
+  usage_unit: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -44,6 +47,9 @@ function toProduct(row: ProductRow): Product {
     type: row.type,
     costPrice: toNumber(row.cost_price),
     salePrice: toNumber(row.sale_price),
+    packUnit: row.pack_unit,
+    contentAmount: toNumber(row.content_amount),
+    usageUnit: row.usage_unit,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -84,6 +90,9 @@ export async function createProduct(input: ProductInput): Promise<Product> {
       type: input.type,
       cost_price: input.costPrice,
       sale_price: input.salePrice,
+      pack_unit: input.packUnit,
+      content_amount: input.contentAmount,
+      usage_unit: input.usageUnit,
     })
     .select("*")
     .single();
@@ -107,6 +116,9 @@ export async function updateProduct(
       type: input.type,
       cost_price: input.costPrice,
       sale_price: input.salePrice,
+      pack_unit: input.packUnit,
+      content_amount: input.contentAmount,
+      usage_unit: input.usageUnit,
     })
     .eq("id", id)
     .select("*")

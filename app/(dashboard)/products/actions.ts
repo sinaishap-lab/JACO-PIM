@@ -74,6 +74,10 @@ function toPrice(value: FormDataEntryValue | null): number | null {
   return Number.isNaN(n) ? null : n;
 }
 
+function toText(value: FormDataEntryValue | null): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
 function parse(formData: FormData) {
   return productInputSchema.safeParse({
     sku: formData.get("sku"),
@@ -83,6 +87,9 @@ function parse(formData: FormData) {
     type: formData.get("type"),
     costPrice: toPrice(formData.get("costPrice")),
     salePrice: toPrice(formData.get("salePrice")),
+    packUnit: toText(formData.get("packUnit")),
+    contentAmount: toPrice(formData.get("contentAmount")),
+    usageUnit: toText(formData.get("usageUnit")),
   });
 }
 

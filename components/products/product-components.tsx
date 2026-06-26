@@ -77,14 +77,15 @@ export function ProductComponents({
               {components.map((line) => (
                 <TableRow key={line.componentId}>
                   <TableCell className="font-medium">{line.name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {ils(line.costPrice)}
+                  <TableCell className="text-muted-foreground whitespace-nowrap">
+                    {ils(line.unitCost)}
+                    {line.usageUnit ? ` / ${line.usageUnit}` : ""}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground whitespace-nowrap">
+                    {line.quantity} {line.usageUnit ?? ""}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {line.quantity}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {ils((line.costPrice ?? 0) * line.quantity)}
+                    {ils((line.unitCost ?? 0) * line.quantity)}
                   </TableCell>
                   <TableCell className="text-end">
                     <form
@@ -136,7 +137,8 @@ export function ProductComponents({
             >
               {rawMaterials.map((rm) => (
                 <option key={rm.id} value={rm.id}>
-                  {rm.name} ({ils(rm.costPrice)})
+                  {rm.name} ({ils(rm.unitCost)}
+                  {rm.usageUnit ? ` / ${rm.usageUnit}` : ""})
                 </option>
               ))}
             </select>

@@ -10,7 +10,9 @@ export interface ComponentLine {
   componentId: string;
   sku: string;
   name: string;
-  costPrice: number | null;
+  /** Cost per usage unit (package price ÷ content amount). */
+  unitCost: number | null;
+  usageUnit: string | null;
   quantity: number;
 }
 
@@ -19,7 +21,8 @@ export interface RawMaterialOption {
   id: string;
   sku: string;
   name: string;
-  costPrice: number | null;
+  unitCost: number | null;
+  usageUnit: string | null;
 }
 
 function num(value: number | string | null | undefined): number | null {
@@ -27,6 +30,27 @@ function num(value: number | string | null | undefined): number | null {
   const n = typeof value === "string" ? Number(value) : value;
   return Number.isNaN(n) ? null : n;
 }
+
+/** Per-unit cost = package price ÷ content amount (falls back to the price). */
+function unitCostOf(
+  costPrice: number | null,
+  contentAmount: number | null
+): number | null {
+  if (costPrice == null) return null;
+  if (contentAmount != null && contentAmount > 0) return costPrice / contentAmount;
+  return costPrice;
+}
+
+type RawProductRow = {
+  id: string;
+  sku: string;
+  name: string;
+  cost_price: number | string | null;
+  content_amount: number | string | null;
+  usage_unit: string | null;
+};
+
+const RAW_SELECT = "id, sku, name, cost_price, content_amount, usage_unit";
 
 /** Returns the recipe lines (raw materials + quantities) of a product. */
 export async function listComponents(
@@ -46,14 +70,12 @@ export async function listComponents(
   const ids = links.map((r) => r.component_id);
   const { data: prods, error: prodErr } = await supabase
     .from("products")
-    .select("id, sku, name, cost_price")
+    .select(RAW_SELECT)
     .in("id", ids);
   if (prodErr) throw new Error(prodErr.message);
 
   const byId = new Map(
-    (prods as { id: string; sku: string; name: string; cost_price: number | string | null }[]).map(
-      (p) => [p.id, p]
-    )
+    (prods as RawProductRow[]).map((p) => [p.id, p])
   );
 
   return links.map((r) => {
@@ -62,7 +84,8 @@ export async function listComponents(
       componentId: r.component_id,
       sku: p?.sku ?? "",
       name: p?.name ?? "(חומר גלם נמחק)",
-      costPrice: num(p?.cost_price),
+      unitCost: unitCostOf(num(p?.cost_price), num(p?.content_amount)),
+      usageUnit: p?.usage_unit ?? null,
       quantity: num(r.quantity) ?? 0,
     };
   });
@@ -73,18 +96,17 @@ export async function listRawMaterials(): Promise<RawMaterialOption[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
-    .select("id, sku, name, cost_price")
+    .select(RAW_SELECT)
     .eq("type", "raw_material")
     .order("name", { ascending: true });
   if (error) throw new Error(error.message);
 
-  return (
-    data as { id: string; sku: string; name: string; cost_price: number | string | null }[]
-  ).map((p) => ({
+  return (data as RawProductRow[]).map((p) => ({
     id: p.id,
     sku: p.sku,
     name: p.name,
-    costPrice: num(p.cost_price),
+    unitCost: unitCostOf(num(p.cost_price), num(p.content_amount)),
+    usageUnit: p.usage_unit ?? null,
   }));
 }
 
@@ -118,10 +140,10 @@ export async function removeComponent(
   if (error) throw new Error(error.message);
 }
 
-/** Computed cost of a finished product = Σ(component cost × quantity). */
+/** Computed cost of a finished product = Σ(unit cost × quantity). */
 export function computeCost(lines: ComponentLine[]): number {
   return lines.reduce(
-    (sum, line) => sum + (line.costPrice ?? 0) * line.quantity,
+    (sum, line) => sum + (line.unitCost ?? 0) * line.quantity,
     0
   );
 }
