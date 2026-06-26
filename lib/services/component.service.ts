@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getEffectiveCostMap } from "@/lib/services/product-supplier.service";
 
 /**
  * Bill-of-materials service — manages which raw materials a finished product
@@ -78,13 +79,17 @@ export async function listComponents(
     (prods as RawProductRow[]).map((p) => [p.id, p])
   );
 
+  // Prefer the cheapest supplier price; fall back to the product's own cost.
+  const supplierCosts = await getEffectiveCostMap(ids);
+
   return links.map((r) => {
     const p = byId.get(r.component_id);
+    const packageCost = supplierCosts.get(r.component_id) ?? num(p?.cost_price);
     return {
       componentId: r.component_id,
       sku: p?.sku ?? "",
       name: p?.name ?? "(חומר גלם נמחק)",
-      unitCost: unitCostOf(num(p?.cost_price), num(p?.content_amount)),
+      unitCost: unitCostOf(packageCost, num(p?.content_amount)),
       usageUnit: p?.usage_unit ?? null,
       quantity: num(r.quantity) ?? 0,
     };

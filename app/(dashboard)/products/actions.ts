@@ -16,6 +16,10 @@ import {
   addComponent,
   removeComponent,
 } from "@/lib/services/component.service";
+import {
+  addProductSupplier,
+  removeProductSupplier,
+} from "@/lib/services/product-supplier.service";
 
 /** Result returned to the form via useActionState. */
 export type ProductFormState = {
@@ -154,5 +158,31 @@ export async function removeComponentAction(
   componentId: string
 ): Promise<void> {
   await removeComponent(productId, componentId);
+  revalidatePath(`/products/${productId}`);
+}
+
+// ── Suppliers of a product ──────────────────────────────────────────────────
+
+export async function addProductSupplierAction(
+  productId: string,
+  formData: FormData
+): Promise<void> {
+  const supplierId = formData.get("supplierId");
+  if (typeof supplierId !== "string" || !supplierId) return;
+  await addProductSupplier(productId, {
+    supplierId,
+    supplierSku: toText(formData.get("supplierSku")),
+    supplierName: toText(formData.get("supplierName")),
+    costPrice: toPrice(formData.get("costPrice")),
+    isPreferred: formData.get("isPreferred") === "on",
+  });
+  revalidatePath(`/products/${productId}`);
+}
+
+export async function removeProductSupplierAction(
+  productId: string,
+  rowId: string
+): Promise<void> {
+  await removeProductSupplier(rowId);
   revalidatePath(`/products/${productId}`);
 }

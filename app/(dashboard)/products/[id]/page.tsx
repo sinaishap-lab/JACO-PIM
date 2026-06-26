@@ -6,6 +6,7 @@ import { ProductForm } from "@/components/products/product-form";
 import { DeleteProductButton } from "@/components/products/delete-product-button";
 import { ProductAttributes } from "@/components/products/product-attributes";
 import { ProductComponents } from "@/components/products/product-components";
+import { ProductSuppliers } from "@/components/products/product-suppliers";
 import { getProduct } from "@/lib/services/product.service";
 import { listAttributes } from "@/lib/services/attribute.service";
 import { getProductAttributeValues } from "@/lib/services/attribute-value.service";
@@ -13,6 +14,8 @@ import {
   listComponents,
   listRawMaterials,
 } from "@/lib/services/component.service";
+import { listProductSuppliers } from "@/lib/services/product-supplier.service";
+import { listSuppliers } from "@/lib/services/supplier.service";
 import { updateProductAction } from "../actions";
 
 export default async function EditProductPage({
@@ -29,12 +32,15 @@ export default async function EditProductPage({
 
   const isFinished = product.type === "finished";
 
-  const [attributes, values, components, rawMaterials] = await Promise.all([
-    listAttributes(),
-    getProductAttributeValues(id),
-    isFinished ? listComponents(id) : Promise.resolve([]),
-    isFinished ? listRawMaterials() : Promise.resolve([]),
-  ]);
+  const [attributes, values, components, rawMaterials, productSuppliers, suppliers] =
+    await Promise.all([
+      listAttributes(),
+      getProductAttributeValues(id),
+      isFinished ? listComponents(id) : Promise.resolve([]),
+      isFinished ? listRawMaterials() : Promise.resolve([]),
+      listProductSuppliers(id),
+      listSuppliers(),
+    ]);
 
   const action = updateProductAction.bind(null, id);
 
@@ -60,6 +66,20 @@ export default async function EditProductPage({
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">פרטי מוצר</h2>
         <ProductForm action={action} product={product} />
+      </section>
+
+      <section className="space-y-4 border-t pt-8">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold">ספקים</h2>
+          <p className="text-muted-foreground text-sm">
+            מי מספק את המוצר, ובכמה. העלות נקבעת לפי הספק המועדף או הזול ביותר.
+          </p>
+        </div>
+        <ProductSuppliers
+          productId={product.id}
+          links={productSuppliers}
+          suppliers={suppliers}
+        />
       </section>
 
       {isFinished && (
