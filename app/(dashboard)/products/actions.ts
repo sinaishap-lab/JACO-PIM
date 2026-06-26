@@ -12,6 +12,10 @@ import {
 } from "@/lib/services/product.service";
 import { listAttributes } from "@/lib/services/attribute.service";
 import { setProductAttributeValues } from "@/lib/services/attribute-value.service";
+import {
+  addComponent,
+  removeComponent,
+} from "@/lib/services/component.service";
 
 /** Result returned to the form via useActionState. */
 export type ProductFormState = {
@@ -122,4 +126,26 @@ export async function deleteProductAction(id: string): Promise<void> {
   await deleteProduct(id);
   revalidatePath("/products");
   redirect("/products");
+}
+
+// ── Bill of materials (recipe) ──────────────────────────────────────────────
+
+export async function addComponentAction(
+  productId: string,
+  formData: FormData
+): Promise<void> {
+  const componentId = formData.get("componentId");
+  const quantity = Number(formData.get("quantity"));
+  if (typeof componentId === "string" && componentId && quantity > 0) {
+    await addComponent(productId, componentId, quantity);
+    revalidatePath(`/products/${productId}`);
+  }
+}
+
+export async function removeComponentAction(
+  productId: string,
+  componentId: string
+): Promise<void> {
+  await removeComponent(productId, componentId);
+  revalidatePath(`/products/${productId}`);
 }

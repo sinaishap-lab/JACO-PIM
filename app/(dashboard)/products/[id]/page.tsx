@@ -5,9 +5,14 @@ import { ArrowRight } from "lucide-react";
 import { ProductForm } from "@/components/products/product-form";
 import { DeleteProductButton } from "@/components/products/delete-product-button";
 import { ProductAttributes } from "@/components/products/product-attributes";
+import { ProductComponents } from "@/components/products/product-components";
 import { getProduct } from "@/lib/services/product.service";
 import { listAttributes } from "@/lib/services/attribute.service";
 import { getProductAttributeValues } from "@/lib/services/attribute-value.service";
+import {
+  listComponents,
+  listRawMaterials,
+} from "@/lib/services/component.service";
 import { updateProductAction } from "../actions";
 
 export default async function EditProductPage({
@@ -22,9 +27,13 @@ export default async function EditProductPage({
     notFound();
   }
 
-  const [attributes, values] = await Promise.all([
+  const isFinished = product.type === "finished";
+
+  const [attributes, values, components, rawMaterials] = await Promise.all([
     listAttributes(),
     getProductAttributeValues(id),
+    isFinished ? listComponents(id) : Promise.resolve([]),
+    isFinished ? listRawMaterials() : Promise.resolve([]),
   ]);
 
   const action = updateProductAction.bind(null, id);
@@ -52,6 +61,23 @@ export default async function EditProductPage({
         <h2 className="text-lg font-semibold">פרטי מוצר</h2>
         <ProductForm action={action} product={product} />
       </section>
+
+      {isFinished && (
+        <section className="space-y-4 border-t pt-8">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">עלות ומתכון</h2>
+            <p className="text-muted-foreground text-sm">
+              חומרי הגלם שמהם מורכב המוצר. העלות והרווחיות מחושבות אוטומטית.
+            </p>
+          </div>
+          <ProductComponents
+            productId={product.id}
+            components={components}
+            rawMaterials={rawMaterials}
+            salePrice={product.salePrice}
+          />
+        </section>
+      )}
 
       <section className="space-y-4 border-t pt-8">
         <h2 className="text-lg font-semibold">מאפיינים</h2>
