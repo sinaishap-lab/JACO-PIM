@@ -26,6 +26,7 @@ import {
   addColor,
   removeColor,
 } from "@/lib/services/variant.service";
+import { regenerateProductSku } from "@/lib/services/sku.service";
 
 /** Result returned to the form via useActionState. */
 export type ProductFormState = {
@@ -90,7 +91,6 @@ function toText(value: FormDataEntryValue | null): string | null {
 
 function parse(formData: FormData) {
   return productInputSchema.safeParse({
-    sku: formData.get("sku"),
     name: formData.get("name"),
     description: formData.get("description"),
     status: formData.get("status"),
@@ -115,7 +115,8 @@ export async function createProductAction(
     return { fieldErrors: z.flattenError(parsed.error).fieldErrors };
   }
   try {
-    await createProduct(parsed.data);
+    const product = await createProduct(parsed.data);
+    await regenerateProductSku(product.id);
   } catch (err) {
     return { error: err instanceof Error ? err.message : "שגיאה ביצירת המוצר" };
   }
@@ -134,6 +135,7 @@ export async function updateProductAction(
   }
   try {
     await updateProduct(id, parsed.data);
+    await regenerateProductSku(id);
   } catch (err) {
     return { error: err instanceof Error ? err.message : "שגיאה בעדכון המוצר" };
   }
@@ -185,6 +187,7 @@ export async function addProductSupplierAction(
     costPrice: toPrice(formData.get("costPrice")),
     isPreferred: formData.get("isPreferred") === "on",
   });
+  await regenerateProductSku(productId);
   revalidatePath(`/products/${productId}`);
 }
 
@@ -193,6 +196,7 @@ export async function removeProductSupplierAction(
   rowId: string
 ): Promise<void> {
   await removeProductSupplier(rowId);
+  await regenerateProductSku(productId);
   revalidatePath(`/products/${productId}`);
 }
 

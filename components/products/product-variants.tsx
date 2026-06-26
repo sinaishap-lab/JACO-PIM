@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { SizeOption, ColorOption } from "@/lib/services/variant.service";
+import { generateVariantSku } from "@/lib/sku";
 import {
   addSizeAction,
   removeSizeAction,
@@ -28,11 +29,13 @@ export function ProductVariants({
   sizes,
   colors,
   salePrice,
+  baseSku,
 }: {
   productId: string;
   sizes: SizeOption[];
   colors: ColorOption[];
   salePrice: number | null;
+  baseSku: string | null;
 }) {
   // Build the size × color combinations (handles the case of one axis only).
   const sizeList: (SizeOption | null)[] = sizes.length ? sizes : [null];
@@ -190,6 +193,7 @@ export function ProductVariants({
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>מק&quot;ט</TableHead>
                   <TableHead>גודל</TableHead>
                   <TableHead>צבע</TableHead>
                   <TableHead>מחיר</TableHead>
@@ -198,6 +202,15 @@ export function ProductVariants({
               <TableBody>
                 {combinations.map((v, i) => (
                   <TableRow key={i}>
+                    <TableCell className="font-mono text-xs" dir="ltr">
+                      {baseSku
+                        ? generateVariantSku(
+                            baseSku,
+                            v.size?.value,
+                            v.color?.letter
+                          )
+                        : "—"}
+                    </TableCell>
                     <TableCell>{v.size?.value ?? "—"}</TableCell>
                     <TableCell>{v.color?.value ?? "—"}</TableCell>
                     <TableCell className="text-muted-foreground">
@@ -208,9 +221,11 @@ export function ProductVariants({
               </TableBody>
             </Table>
           </Card>
-          <p className="text-muted-foreground text-xs">
-            המק&quot;ט לכל וריאנט ייווצר אוטומטית בשלב הבא (ג&apos;ינרוט מק&quot;ט).
-          </p>
+          {!baseSku && (
+            <p className="text-muted-foreground text-xs">
+              המק&quot;ט יופיע לאחר שתשייכו למוצר ספק (עם קוד) וסיווג.
+            </p>
+          )}
         </div>
       )}
     </div>

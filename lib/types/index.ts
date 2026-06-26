@@ -31,7 +31,8 @@ export type AttributeType =
 /** The master product record — the single source of truth. */
 export interface Product {
   id: string;
-  sku: string;
+  /** Auto-generated; null until the product has the parts to build one. */
+  sku: string | null;
   name: string;
   description: string | null;
   status: ProductStatus;

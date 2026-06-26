@@ -105,16 +105,15 @@ export function ProductForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="sku">מק&quot;ט *</Label>
-        <Input
-          id="sku"
-          name="sku"
-          defaultValue={product?.sku}
-          aria-invalid={Boolean(state.fieldErrors?.sku)}
-          placeholder="לדוגמה: PHOTO-10X15"
-        />
-        {state.fieldErrors?.sku && (
-          <p className={errorText}>{state.fieldErrors.sku[0]}</p>
+        <Label>מק&quot;ט</Label>
+        {product?.sku ? (
+          <p className="font-mono text-sm" dir="ltr">
+            {product.sku}
+          </p>
+        ) : (
+          <p className="text-muted-foreground text-sm">
+            ייווצר אוטומטית מקוד הספק, הסיווג והמספר הרץ.
+          </p>
         )}
       </div>
 

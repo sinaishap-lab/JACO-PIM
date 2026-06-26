@@ -111,6 +111,7 @@ export default async function EditProductPage({
             sizes={sizes}
             colors={colors}
             salePrice={product.salePrice}
+            baseSku={product.sku}
           />
         </section>
       )}

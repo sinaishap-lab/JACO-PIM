@@ -93,7 +93,6 @@ export async function createProduct(input: ProductInput): Promise<Product> {
   const { data, error } = await supabase
     .from("products")
     .insert({
-      sku: input.sku,
       name: input.name,
       description: input.description || null,
       status: input.status,
@@ -122,7 +121,6 @@ export async function updateProduct(
   const { data, error } = await supabase
     .from("products")
     .update({
-      sku: input.sku,
       name: input.name,
       description: input.description || null,
       status: input.status,

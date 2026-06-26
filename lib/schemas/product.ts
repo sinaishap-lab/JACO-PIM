@@ -16,11 +16,6 @@ const priceField = z
   .nullable();
 
 export const productInputSchema = z.object({
-  sku: z
-    .string()
-    .trim()
-    .min(1, "מק\"ט הוא שדה חובה")
-    .max(64, "מק\"ט ארוך מדי"),
   name: z
     .string()
     .trim()
