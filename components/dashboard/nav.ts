@@ -4,6 +4,7 @@ import {
   FolderTree,
   SlidersHorizontal,
   Images,
+  Truck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -17,6 +18,7 @@ export type NavItem = {
 export const navItems: NavItem[] = [
   { href: "/", label: "סקירה", icon: LayoutDashboard },
   { href: "/products", label: "מוצרים", icon: Package },
+  { href: "/suppliers", label: "ספקים", icon: Truck },
   { href: "/categories", label: "קטגוריות", icon: FolderTree },
   { href: "/attributes", label: "מאפיינים", icon: SlidersHorizontal },
   { href: "/media", label: "מדיה", icon: Images },

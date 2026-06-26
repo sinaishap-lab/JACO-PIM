@@ -58,6 +58,27 @@ export interface ProductComponent {
   quantity: number;
 }
 
+/** A vendor that supplies products or raw materials. */
+export interface Supplier {
+  id: string;
+  name: string;
+  contactName: string | null;
+  phone: string | null;
+  email: string | null;
+  notes: string | null;
+}
+
+/** A product's link to one of its suppliers, with that supplier's terms. */
+export interface ProductSupplier {
+  id: string;
+  productId: string;
+  supplierId: string;
+  supplierSku: string | null;
+  supplierName: string | null;
+  costPrice: number | null;
+  isPreferred: boolean;
+}
+
 /** A node in the category tree (self-referencing via parentId). */
 export interface Category {
   id: string;
