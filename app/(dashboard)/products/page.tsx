@@ -60,9 +60,11 @@ export default async function ProductsPage() {
           <h1 className="text-2xl font-bold tracking-tight">מוצרים</h1>
           <p className="text-muted-foreground">קטלוג המוצרים של JACO-PIM</p>
         </div>
-        <Button disabled={!supabaseConfigured}>
-          <Plus />
-          מוצר חדש
+        <Button asChild disabled={!supabaseConfigured}>
+          <Link href="/products/new">
+            <Plus />
+            מוצר חדש
+          </Link>
         </Button>
       </header>
 
