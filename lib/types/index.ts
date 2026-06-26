@@ -10,6 +10,14 @@
 /** Lifecycle state of a product record. */
 export type ProductStatus = "draft" | "published" | "archived";
 
+/**
+ * Whether a product is a sellable end product or a raw material/component.
+ * - finished: sold to customers, has a sale price; its cost is computed from
+ *   the raw materials it is made of (see {@link ProductComponent}).
+ * - raw_material: not sold as-is, has a (purchase) cost price.
+ */
+export type ProductType = "finished" | "raw_material";
+
 /** Data type a dynamic attribute can hold. */
 export type AttributeType =
   | "text"
@@ -27,8 +35,21 @@ export interface Product {
   name: string;
   description: string | null;
   status: ProductStatus;
+  type: ProductType;
+  /** Purchase cost (raw materials). For finished products this is computed. */
+  costPrice: number | null;
+  /** Selling price (finished products). */
+  salePrice: number | null;
   createdAt: string;
   updatedAt: string;
+}
+
+/** A raw material used to make a finished product, with its quantity. */
+export interface ProductComponent {
+  id: string;
+  productId: string;
+  componentId: string;
+  quantity: number;
 }
 
 /** A node in the category tree (self-referencing via parentId). */

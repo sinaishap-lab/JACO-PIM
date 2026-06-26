@@ -20,8 +20,18 @@ interface ProductRow {
   name: string;
   description: string | null;
   status: Product["status"];
+  type: Product["type"];
+  cost_price: number | string | null;
+  sale_price: number | string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** Postgres numeric columns arrive as strings — normalize to number | null. */
+function toNumber(value: number | string | null): number | null {
+  if (value === null) return null;
+  const n = typeof value === "string" ? Number(value) : value;
+  return Number.isNaN(n) ? null : n;
 }
 
 function toProduct(row: ProductRow): Product {
@@ -31,6 +41,9 @@ function toProduct(row: ProductRow): Product {
     name: row.name,
     description: row.description,
     status: row.status,
+    type: row.type,
+    costPrice: toNumber(row.cost_price),
+    salePrice: toNumber(row.sale_price),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -68,6 +81,9 @@ export async function createProduct(input: ProductInput): Promise<Product> {
       name: input.name,
       description: input.description || null,
       status: input.status,
+      type: input.type,
+      cost_price: input.costPrice,
+      sale_price: input.salePrice,
     })
     .select("*")
     .single();
@@ -88,6 +104,9 @@ export async function updateProduct(
       name: input.name,
       description: input.description || null,
       status: input.status,
+      type: input.type,
+      cost_price: input.costPrice,
+      sale_price: input.salePrice,
     })
     .eq("id", id)
     .select("*")

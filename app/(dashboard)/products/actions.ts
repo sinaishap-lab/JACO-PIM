@@ -64,12 +64,21 @@ export async function saveProductAttributesAction(
   return { ok: true };
 }
 
+function toPrice(value: FormDataEntryValue | null): number | null {
+  if (typeof value !== "string" || value.trim() === "") return null;
+  const n = Number(value);
+  return Number.isNaN(n) ? null : n;
+}
+
 function parse(formData: FormData) {
   return productInputSchema.safeParse({
     sku: formData.get("sku"),
     name: formData.get("name"),
     description: formData.get("description"),
     status: formData.get("status"),
+    type: formData.get("type"),
+    costPrice: toPrice(formData.get("costPrice")),
+    salePrice: toPrice(formData.get("salePrice")),
   });
 }
 

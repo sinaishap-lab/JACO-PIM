@@ -19,7 +19,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { listProducts } from "@/lib/services/product.service";
+import { productTypeLabels } from "@/lib/schemas/product";
 import type { Product, ProductStatus } from "@/lib/types";
+
+function formatPrice(value: number | null): string {
+  return value == null ? "—" : `₪${value.toLocaleString("he-IL")}`;
+}
 
 const supabaseConfigured = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -111,8 +116,9 @@ export default async function ProductsPage() {
               <TableRow>
                 <TableHead>מק&quot;ט</TableHead>
                 <TableHead>שם</TableHead>
+                <TableHead>סוג</TableHead>
+                <TableHead>מחיר</TableHead>
                 <TableHead>סטטוס</TableHead>
-                <TableHead>עודכן</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -130,12 +136,23 @@ export default async function ProductsPage() {
                     </Link>
                   </TableCell>
                   <TableCell>
+                    <Badge
+                      variant={
+                        product.type === "finished" ? "default" : "outline"
+                      }
+                    >
+                      {productTypeLabels[product.type]}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground whitespace-nowrap">
+                    {product.type === "finished"
+                      ? formatPrice(product.salePrice)
+                      : formatPrice(product.costPrice)}
+                  </TableCell>
+                  <TableCell>
                     <Badge variant={statusVariants[product.status]}>
                       {statusLabels[product.status]}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {new Date(product.updatedAt).toLocaleDateString("he-IL")}
                   </TableCell>
                 </TableRow>
               ))}
