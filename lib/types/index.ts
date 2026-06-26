@@ -46,6 +46,10 @@ export interface Product {
   contentAmount: number | null;
   /** Raw materials: how it is consumed (e.g. "מטר", 'מ"ר'). */
   usageUnit: string | null;
+  /** Classification (all optional). */
+  departmentId: string | null;
+  subDepartmentId: string | null;
+  modelId: string | null;
   createdAt: string;
   updatedAt: string;
 }

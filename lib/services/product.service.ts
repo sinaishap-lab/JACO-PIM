@@ -26,6 +26,9 @@ interface ProductRow {
   pack_unit: string | null;
   content_amount: number | string | null;
   usage_unit: string | null;
+  department_id: string | null;
+  sub_department_id: string | null;
+  model_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -50,6 +53,9 @@ function toProduct(row: ProductRow): Product {
     packUnit: row.pack_unit,
     contentAmount: toNumber(row.content_amount),
     usageUnit: row.usage_unit,
+    departmentId: row.department_id,
+    subDepartmentId: row.sub_department_id,
+    modelId: row.model_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -97,6 +103,9 @@ export async function createProduct(input: ProductInput): Promise<Product> {
       pack_unit: input.packUnit,
       content_amount: input.contentAmount,
       usage_unit: input.usageUnit,
+      department_id: input.departmentId,
+      sub_department_id: input.subDepartmentId,
+      model_id: input.modelId,
     })
     .select("*")
     .single();
@@ -123,6 +132,9 @@ export async function updateProduct(
       pack_unit: input.packUnit,
       content_amount: input.contentAmount,
       usage_unit: input.usageUnit,
+      department_id: input.departmentId,
+      sub_department_id: input.subDepartmentId,
+      model_id: input.modelId,
     })
     .eq("id", id)
     .select("*")

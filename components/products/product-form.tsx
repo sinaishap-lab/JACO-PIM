@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { productTypeLabels, usageUnitOptions } from "@/lib/schemas/product";
 import type { ProductFormState } from "@/app/(dashboard)/products/actions";
 import type { Product, ProductType } from "@/lib/types";
+import type { DepartmentNode } from "@/lib/services/classification.service";
 
 const statusOptions = [
   { value: "draft", label: "טיוטה" },
@@ -32,10 +33,12 @@ export function ProductForm({
   action,
   product,
   initialType,
+  tree = [],
 }: {
   action: Action;
   product?: Product;
   initialType?: ProductType;
+  tree?: DepartmentNode[];
 }) {
   const [state, formAction, pending] = useActionState<
     ProductFormState,
@@ -44,6 +47,13 @@ export function ProductForm({
   const [type, setType] = useState<ProductType>(
     product?.type ?? initialType ?? "finished"
   );
+  const [deptId, setDeptId] = useState(product?.departmentId ?? "");
+  const [subId, setSubId] = useState(product?.subDepartmentId ?? "");
+  const [modelId, setModelId] = useState(product?.modelId ?? "");
+
+  const subOptions = tree.find((d) => d.id === deptId)?.subDepartments ?? [];
+  const modelOptions =
+    subOptions.find((s) => s.id === subId)?.models ?? [];
   const [costStr, setCostStr] = useState(
     product?.costPrice != null ? String(product.costPrice) : ""
   );
@@ -247,6 +257,71 @@ export function ProductForm({
           ))}
         </select>
       </div>
+
+      {tree.length > 0 && (
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="space-y-2">
+            <Label htmlFor="departmentId">מחלקה</Label>
+            <select
+              id="departmentId"
+              name="departmentId"
+              value={deptId}
+              onChange={(e) => {
+                setDeptId(e.target.value);
+                setSubId("");
+                setModelId("");
+              }}
+              className={selectClass}
+            >
+              <option value="">— ללא —</option>
+              {tree.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="subDepartmentId">תת-מחלקה</Label>
+            <select
+              id="subDepartmentId"
+              name="subDepartmentId"
+              value={subId}
+              disabled={!deptId}
+              onChange={(e) => {
+                setSubId(e.target.value);
+                setModelId("");
+              }}
+              className={selectClass}
+            >
+              <option value="">— ללא —</option>
+              {subOptions.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="modelId">דגם</Label>
+            <select
+              id="modelId"
+              name="modelId"
+              value={modelId}
+              disabled={!subId}
+              onChange={(e) => setModelId(e.target.value)}
+              className={selectClass}
+            >
+              <option value="">— ללא —</option>
+              {modelOptions.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-2">
         <Button type="submit" disabled={pending}>

@@ -37,6 +37,9 @@ export const productInputSchema = z.object({
     .positive("כמות חייבת להיות גדולה מ-0")
     .nullable(),
   usageUnit: z.string().trim().max(40).nullable(),
+  departmentId: z.string().uuid().nullable(),
+  subDepartmentId: z.string().uuid().nullable(),
+  modelId: z.string().uuid().nullable(),
 });
 
 /** Common units a raw material can be consumed in. */

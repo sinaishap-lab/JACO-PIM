@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 
 import { ProductForm } from "@/components/products/product-form";
 import { createProductAction } from "../actions";
+import { listClassificationTree } from "@/lib/services/classification.service";
 import type { ProductType } from "@/lib/types";
 
 export default async function NewProductPage({
@@ -14,6 +15,7 @@ export default async function NewProductPage({
   const initialType: ProductType =
     type === "raw_material" ? "raw_material" : "finished";
   const isMaterial = initialType === "raw_material";
+  const tree = await listClassificationTree().catch(() => []);
 
   return (
     <div className="space-y-6">
@@ -31,7 +33,11 @@ export default async function NewProductPage({
         <p className="text-muted-foreground">הוספה לקטלוג</p>
       </header>
 
-      <ProductForm action={createProductAction} initialType={initialType} />
+      <ProductForm
+        action={createProductAction}
+        initialType={initialType}
+        tree={tree}
+      />
     </div>
   );
 }

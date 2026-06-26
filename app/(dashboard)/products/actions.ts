@@ -94,6 +94,9 @@ function parse(formData: FormData) {
     packUnit: toText(formData.get("packUnit")),
     contentAmount: toPrice(formData.get("contentAmount")),
     usageUnit: toText(formData.get("usageUnit")),
+    departmentId: toText(formData.get("departmentId")),
+    subDepartmentId: toText(formData.get("subDepartmentId")),
+    modelId: toText(formData.get("modelId")),
   });
 }
 

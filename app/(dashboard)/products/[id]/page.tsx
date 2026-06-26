@@ -16,6 +16,7 @@ import {
 } from "@/lib/services/component.service";
 import { listProductSuppliers } from "@/lib/services/product-supplier.service";
 import { listSuppliers } from "@/lib/services/supplier.service";
+import { listClassificationTree } from "@/lib/services/classification.service";
 import { updateProductAction } from "../actions";
 
 export default async function EditProductPage({
@@ -32,15 +33,23 @@ export default async function EditProductPage({
 
   const isFinished = product.type === "finished";
 
-  const [attributes, values, components, rawMaterials, productSuppliers, suppliers] =
-    await Promise.all([
-      listAttributes(),
-      getProductAttributeValues(id),
-      isFinished ? listComponents(id) : Promise.resolve([]),
-      isFinished ? listRawMaterials() : Promise.resolve([]),
-      listProductSuppliers(id),
-      listSuppliers(),
-    ]);
+  const [
+    attributes,
+    values,
+    components,
+    rawMaterials,
+    productSuppliers,
+    suppliers,
+    tree,
+  ] = await Promise.all([
+    listAttributes(),
+    getProductAttributeValues(id),
+    isFinished ? listComponents(id) : Promise.resolve([]),
+    isFinished ? listRawMaterials() : Promise.resolve([]),
+    listProductSuppliers(id),
+    listSuppliers(),
+    listClassificationTree(),
+  ]);
 
   const action = updateProductAction.bind(null, id);
 
@@ -65,7 +74,7 @@ export default async function EditProductPage({
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">פרטי מוצר</h2>
-        <ProductForm action={action} product={product} />
+        <ProductForm action={action} product={product} tree={tree} />
       </section>
 
       <section className="space-y-4 border-t pt-8">
