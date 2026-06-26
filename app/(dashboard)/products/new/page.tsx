@@ -3,23 +3,35 @@ import { ArrowRight } from "lucide-react";
 
 import { ProductForm } from "@/components/products/product-form";
 import { createProductAction } from "../actions";
+import type { ProductType } from "@/lib/types";
 
-export default function NewProductPage() {
+export default async function NewProductPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ type?: string }>;
+}) {
+  const { type } = await searchParams;
+  const initialType: ProductType =
+    type === "raw_material" ? "raw_material" : "finished";
+  const isMaterial = initialType === "raw_material";
+
   return (
     <div className="space-y-6">
       <header className="space-y-1">
         <Link
-          href="/products"
+          href={isMaterial ? "/materials" : "/products"}
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ArrowRight className="size-4" />
-          חזרה למוצרים
+          {isMaterial ? "חזרה לחומרי גלם" : "חזרה למוצרים"}
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight">מוצר חדש</h1>
-        <p className="text-muted-foreground">הוספת מוצר לקטלוג</p>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {isMaterial ? "חומר גלם חדש" : "מוצר חדש"}
+        </h1>
+        <p className="text-muted-foreground">הוספה לקטלוג</p>
       </header>
 
-      <ProductForm action={createProductAction} />
+      <ProductForm action={createProductAction} initialType={initialType} />
     </div>
   );
 }

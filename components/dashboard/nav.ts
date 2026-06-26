@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   Package,
+  Boxes,
   FolderTree,
   SlidersHorizontal,
   Images,
@@ -18,6 +19,7 @@ export type NavItem = {
 export const navItems: NavItem[] = [
   { href: "/", label: "סקירה", icon: LayoutDashboard },
   { href: "/products", label: "מוצרים", icon: Package },
+  { href: "/materials", label: "חומרי גלם", icon: Boxes },
   { href: "/suppliers", label: "ספקים", icon: Truck },
   { href: "/classification", label: "סיווג", icon: FolderTree },
   { href: "/attributes", label: "מאפיינים", icon: SlidersHorizontal },

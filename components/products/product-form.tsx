@@ -31,15 +31,19 @@ type Action = (
 export function ProductForm({
   action,
   product,
+  initialType,
 }: {
   action: Action;
   product?: Product;
+  initialType?: ProductType;
 }) {
   const [state, formAction, pending] = useActionState<
     ProductFormState,
     FormData
   >(action, {});
-  const [type, setType] = useState<ProductType>(product?.type ?? "finished");
+  const [type, setType] = useState<ProductType>(
+    product?.type ?? initialType ?? "finished"
+  );
   const [costStr, setCostStr] = useState(
     product?.costPrice != null ? String(product.costPrice) : ""
   );

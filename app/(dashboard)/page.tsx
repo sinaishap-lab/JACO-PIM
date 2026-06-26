@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { Package, FolderTree, SlidersHorizontal, Images } from "lucide-react";
+import {
+  Package,
+  Boxes,
+  Truck,
+  FolderTree,
+  SlidersHorizontal,
+} from "lucide-react";
 
 import {
   Card,
@@ -12,13 +18,25 @@ const sections = [
   {
     href: "/products",
     title: "מוצרים",
-    description: "קטלוג המוצרים — יצירה, עריכה וניהול",
+    description: "מוצרי הקצה למכירה — יצירה, עריכה וניהול",
     icon: Package,
   },
   {
-    href: "/categories",
-    title: "קטגוריות",
-    description: "עץ קטגוריות היררכי לסיווג מוצרים",
+    href: "/materials",
+    title: "חומרי גלם",
+    description: "החומרים שמהם מורכבים המוצרים",
+    icon: Boxes,
+  },
+  {
+    href: "/suppliers",
+    title: "ספקים",
+    description: "ניהול ספקים ומחירי עלות",
+    icon: Truck,
+  },
+  {
+    href: "/classification",
+    title: "סיווג",
+    description: "מחלקה ← תת-מחלקה ← דגם",
     icon: FolderTree,
   },
   {
@@ -26,12 +44,6 @@ const sections = [
     title: "מאפיינים",
     description: "מאפיינים דינמיים — הלב של ה-PIM",
     icon: SlidersHorizontal,
-  },
-  {
-    href: "/media",
-    title: "מדיה",
-    description: "תמונות וקבצים המקושרים למוצרים",
-    icon: Images,
   },
 ];
 
