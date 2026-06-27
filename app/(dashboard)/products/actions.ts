@@ -43,11 +43,17 @@ export type AttributeValuesState = { ok?: boolean; error?: string };
  */
 export async function saveProductAttributesAction(
   productId: string,
+  audience: "supplier" | "customer",
   _prev: AttributeValuesState,
   formData: FormData
 ): Promise<AttributeValuesState> {
   try {
-    const attributes = await listAttributes();
+    // Only the attributes of this section's audience appear in the form, so we
+    // scope the write to them — otherwise saving one section would wipe the
+    // other section's values.
+    const attributes = (await listAttributes()).filter(
+      (a) => a.audience === audience
+    );
     const values: Record<string, unknown> = {};
 
     for (const attr of attributes) {

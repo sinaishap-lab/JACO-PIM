@@ -57,6 +57,13 @@ export default async function EditProductPage({
     isFinished ? listColors(id) : Promise.resolve([]),
   ]);
 
+  const supplierAttributes = attributes.filter(
+    (a) => a.audience === "supplier"
+  );
+  const customerAttributes = attributes.filter(
+    (a) => a.audience === "customer"
+  );
+
   const action = updateProductAction.bind(null, id);
 
   return (
@@ -133,9 +140,9 @@ export default async function EditProductPage({
         </section>
       )}
 
-      <section className="space-y-4 border-t pt-8">
-        <h2 className="text-lg font-semibold">מאפיינים</h2>
-        {attributes.length === 0 ? (
+      {attributes.length === 0 ? (
+        <section className="space-y-4 border-t pt-8">
+          <h2 className="text-lg font-semibold">מאפיינים</h2>
           <p className="text-muted-foreground text-sm">
             עדיין לא הוגדרו מאפיינים.{" "}
             <Link
@@ -146,14 +153,52 @@ export default async function EditProductPage({
             </Link>{" "}
             כדי למלא אותו כאן.
           </p>
-        ) : (
-          <ProductAttributes
-            productId={product.id}
-            attributes={attributes}
-            values={values}
-          />
-        )}
-      </section>
+        </section>
+      ) : (
+        <>
+          <section className="space-y-4 border-t pt-8">
+            <div className="space-y-1">
+              <h2 className="text-lg font-semibold">מאפייני ספק</h2>
+              <p className="text-muted-foreground text-sm">
+                מידע פנימי על המוצר — טכניקת הדפוס, חומרים, הערות ספק ועוד.
+              </p>
+            </div>
+            {supplierAttributes.length === 0 ? (
+              <p className="text-muted-foreground text-sm">
+                לא הוגדרו מאפייני ספק.
+              </p>
+            ) : (
+              <ProductAttributes
+                productId={product.id}
+                audience="supplier"
+                attributes={supplierAttributes}
+                values={values}
+              />
+            )}
+          </section>
+
+          <section className="space-y-4 border-t pt-8">
+            <div className="space-y-1">
+              <h2 className="text-lg font-semibold">מאפייני לקוח</h2>
+              <p className="text-muted-foreground text-sm">
+                מידע שיווקי שמוצג ללקוח — שם שיווקי, תיאור, סרטון ועוד.
+              </p>
+            </div>
+            {customerAttributes.length === 0 ? (
+              <p className="text-muted-foreground text-sm">
+                לא הוגדרו מאפייני לקוח.
+              </p>
+            ) : (
+              <ProductAttributes
+                productId={product.id}
+                audience="customer"
+                attributes={customerAttributes}
+                values={values}
+              />
+            )}
+          </section>
+        </>
+      )}
     </div>
   );
 }

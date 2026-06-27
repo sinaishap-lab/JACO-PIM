@@ -10,7 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import {
   attributeTypeLabels,
+  attributeAudienceLabels,
   type AttributeFormType,
+  type AttributeAudienceType,
 } from "@/lib/schemas/attribute";
 import type { AttributeFormState } from "@/app/(dashboard)/attributes/actions";
 import type { AttributeDefinition } from "@/lib/types";
@@ -21,6 +23,14 @@ type Action = (
 ) => Promise<AttributeFormState>;
 
 const types = Object.keys(attributeTypeLabels) as AttributeFormType[];
+const audiences = Object.keys(
+  attributeAudienceLabels
+) as AttributeAudienceType[];
+
+const selectClass = cn(
+  "border-input dark:bg-input/30 h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs outline-none",
+  "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+);
 
 export function AttributeForm({
   action,
@@ -62,16 +72,32 @@ export function AttributeForm({
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="audience">קבוצה</Label>
+        <select
+          id="audience"
+          name="audience"
+          defaultValue={attribute?.audience ?? "supplier"}
+          className={selectClass}
+        >
+          {audiences.map((a) => (
+            <option key={a} value={a}>
+              {attributeAudienceLabels[a]}
+            </option>
+          ))}
+        </select>
+        <p className="text-muted-foreground text-xs">
+          מאפייני ספק הם מידע פנימי; מאפייני לקוח מוצגים בקטלוג השיווקי.
+        </p>
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="type">סוג</Label>
         <select
           id="type"
           name="type"
           value={type}
           onChange={(e) => setType(e.target.value as AttributeFormType)}
-          className={cn(
-            "border-input dark:bg-input/30 h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs outline-none",
-            "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-          )}
+          className={selectClass}
         >
           {types.map((t) => (
             <option key={t} value={t}>

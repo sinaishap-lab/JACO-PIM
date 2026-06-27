@@ -16,6 +16,10 @@ export const attributeTypeSchema = z.enum([
 
 export type AttributeFormType = z.infer<typeof attributeTypeSchema>;
 
+export const attributeAudienceSchema = z.enum(["supplier", "customer"]);
+
+export type AttributeAudienceType = z.infer<typeof attributeAudienceSchema>;
+
 export const attributeInputSchema = z
   .object({
     label: z
@@ -24,6 +28,7 @@ export const attributeInputSchema = z
       .min(1, "שם המאפיין הוא שדה חובה")
       .max(100, "שם ארוך מדי"),
     type: attributeTypeSchema,
+    audience: attributeAudienceSchema.default("supplier"),
     options: z.array(z.string().trim().min(1)).optional(),
     required: z.boolean(),
   })
@@ -40,4 +45,9 @@ export const attributeTypeLabels: Record<AttributeFormType, string> = {
   boolean: "כן / לא",
   select: "בחירה מרשימה",
   date: "תאריך",
+};
+
+export const attributeAudienceLabels: Record<AttributeAudienceType, string> = {
+  supplier: "מאפייני ספק (פנימי)",
+  customer: "מאפייני לקוח (שיווקי)",
 };

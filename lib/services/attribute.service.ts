@@ -14,6 +14,7 @@ interface AttributeRow {
   label: string;
   type: AttributeDefinition["type"];
   group_id: string | null;
+  audience: AttributeDefinition["audience"];
   options: string[] | null;
   required: boolean;
 }
@@ -25,6 +26,7 @@ function toAttribute(row: AttributeRow): AttributeDefinition {
     label: row.label,
     type: row.type,
     groupId: row.group_id,
+    audience: row.audience ?? "supplier",
     options: row.options,
     required: row.required,
   };
@@ -70,6 +72,7 @@ export async function createAttribute(
       key: generateKey(),
       label: input.label,
       type: input.type,
+      audience: input.audience,
       options: input.type === "select" ? input.options : null,
       required: input.required,
     })
@@ -90,6 +93,7 @@ export async function updateAttribute(
     .update({
       label: input.label,
       type: input.type,
+      audience: input.audience,
       options: input.type === "select" ? input.options : null,
       required: input.required,
     })

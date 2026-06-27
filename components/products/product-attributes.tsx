@@ -11,7 +11,7 @@ import {
   saveProductAttributesAction,
   type AttributeValuesState,
 } from "@/app/(dashboard)/products/actions";
-import type { AttributeDefinition } from "@/lib/types";
+import type { AttributeAudience, AttributeDefinition } from "@/lib/types";
 
 const selectClass = cn(
   "border-input dark:bg-input/30 h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs outline-none",
@@ -83,14 +83,16 @@ function AttributeField({
 
 export function ProductAttributes({
   productId,
+  audience,
   attributes,
   values,
 }: {
   productId: string;
+  audience: AttributeAudience;
   attributes: AttributeDefinition[];
   values: Record<string, unknown>;
 }) {
-  const action = saveProductAttributesAction.bind(null, productId);
+  const action = saveProductAttributesAction.bind(null, productId, audience);
   const [state, formAction, pending] = useActionState<
     AttributeValuesState,
     FormData

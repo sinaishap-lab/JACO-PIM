@@ -29,6 +29,7 @@ function parse(formData: FormData) {
   return attributeInputSchema.safeParse({
     label: formData.get("label"),
     type: formData.get("type"),
+    audience: formData.get("audience") ?? undefined,
     options,
     required: formData.get("required") === "on",
   });

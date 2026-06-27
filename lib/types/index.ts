@@ -95,6 +95,12 @@ export interface Category {
   position: number;
 }
 
+/**
+ * Whether an attribute is internal supplier data or customer-facing marketing
+ * data. Drives the two attribute sections on the product page.
+ */
+export type AttributeAudience = "supplier" | "customer";
+
 /** Definition (schema) of a dynamic attribute — the "shape", not the value. */
 export interface AttributeDefinition {
   id: string;
@@ -102,6 +108,8 @@ export interface AttributeDefinition {
   label: string;
   type: AttributeType;
   groupId: string | null;
+  /** supplier (internal) vs customer (marketing). */
+  audience: AttributeAudience;
   /** For select / multiselect types. */
   options: string[] | null;
   required: boolean;

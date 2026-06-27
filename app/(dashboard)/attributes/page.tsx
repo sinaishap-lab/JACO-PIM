@@ -19,7 +19,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { listAttributes } from "@/lib/services/attribute.service";
-import { attributeTypeLabels, type AttributeFormType } from "@/lib/schemas/attribute";
+import {
+  attributeTypeLabels,
+  attributeAudienceLabels,
+  type AttributeFormType,
+} from "@/lib/schemas/attribute";
 import type { AttributeDefinition } from "@/lib/types";
 
 const supabaseConfigured = Boolean(
@@ -97,6 +101,7 @@ export default async function AttributesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>שם</TableHead>
+                <TableHead>קבוצה</TableHead>
                 <TableHead>סוג</TableHead>
                 <TableHead>חובה</TableHead>
               </TableRow>
@@ -111,6 +116,15 @@ export default async function AttributesPage() {
                     >
                       {attr.label}
                     </Link>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        attr.audience === "customer" ? "default" : "secondary"
+                      }
+                    >
+                      {attributeAudienceLabels[attr.audience]}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {attributeTypeLabels[attr.type as AttributeFormType] ??
