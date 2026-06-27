@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { Check } from "lucide-react";
+import { Check, ExternalLink } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,11 @@ const selectClass = cn(
   "border-input dark:bg-input/30 h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs outline-none",
   "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
 );
+
+/** True for http(s) links, so we can render them as a clickable link. */
+function isUrl(value: string): boolean {
+  return /^https?:\/\/\S+$/i.test(value.trim());
+}
 
 function AttributeField({
   attr,
@@ -75,7 +80,19 @@ function AttributeField({
           }
           step={attr.type === "number" ? "any" : undefined}
           defaultValue={str}
+          dir={attr.type === "text" && isUrl(str) ? "ltr" : undefined}
         />
+      )}
+      {attr.type === "text" && isUrl(str) && (
+        <a
+          href={str.trim()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs"
+        >
+          <ExternalLink className="size-3" />
+          פתח קישור
+        </a>
       )}
     </div>
   );
