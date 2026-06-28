@@ -39,9 +39,7 @@ async function buildCatalogItems(): Promise<CatalogItem[]> {
     const colors = colorsMap.get(p.id) ?? [];
 
     if (sizes.length === 0 && colors.length === 0) {
-      if (p.sku) {
-        items.push({ sku: p.sku, name: p.name, price: p.salePrice });
-      }
+      items.push({ sku: p.sku ?? "", name: p.name, price: p.salePrice });
       continue;
     }
 
@@ -49,8 +47,9 @@ async function buildCatalogItems(): Promise<CatalogItem[]> {
     const colorList = colors.length ? colors : [null];
     for (const s of sizeList) {
       for (const c of colorList) {
-        if (!p.sku) continue;
-        const sku = generateVariantSku(p.sku, s?.value, c?.letter);
+        const sku = p.sku
+          ? generateVariantSku(p.sku, s?.value, c?.letter)
+          : "";
         const parts = [p.name, s?.value, c?.value].filter(Boolean);
         items.push({
           sku,
