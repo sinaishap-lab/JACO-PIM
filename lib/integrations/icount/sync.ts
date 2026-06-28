@@ -14,6 +14,7 @@ interface CatalogItem {
   sku: string;
   name: string;
   price: number | null;
+  cost: number | null;
 }
 
 export interface IcountSyncResult {
@@ -39,7 +40,12 @@ async function buildCatalogItems(): Promise<CatalogItem[]> {
     const colors = colorsMap.get(p.id) ?? [];
 
     if (sizes.length === 0 && colors.length === 0) {
-      items.push({ sku: p.sku ?? "", name: p.name, price: p.salePrice });
+      items.push({
+        sku: p.sku ?? "",
+        name: p.name,
+        price: p.salePrice,
+        cost: p.costPrice,
+      });
       continue;
     }
 
@@ -55,6 +61,7 @@ async function buildCatalogItems(): Promise<CatalogItem[]> {
           sku,
           name: parts.join(" "),
           price: s?.price ?? p.salePrice,
+          cost: p.costPrice,
         });
       }
     }
@@ -73,7 +80,10 @@ async function fetchExistingItems(): Promise<Map<string, string | number>> {
   const map = new Map<string, string | number>();
   for (const it of arr) {
     const sku = (it.sku ?? it.catalog_number) as string | undefined;
-    const id = (it.item_id ?? it.id) as string | number | undefined;
+    const id = (it.inventory_item_id ?? it.item_id ?? it.id) as
+      | string
+      | number
+      | undefined;
     if (sku && id != null) map.set(String(sku), id);
   }
   return map;
@@ -83,8 +93,9 @@ async function fetchExistingItems(): Promise<Map<string, string | number>> {
 function toIcountFields(item: CatalogItem): Record<string, unknown> {
   return {
     sku: item.sku,
-    description: item.name,
+    description: item.name, // iCount's item-name field is "description"
     unitprice: item.price ?? 0,
+    cost_amount: item.cost ?? 0,
   };
 }
 
@@ -112,18 +123,25 @@ export async function syncProductsToIcount(): Promise<IcountSyncResult> {
   };
 
   for (const item of items) {
-    try {
-      const existingId = existing.get(item.sku);
-      if (existingId != null) {
-        await icountRequest("inventory/update", {
-          item_id: existingId,
+    const existingId = existing.get(item.sku);
+    if (existingId != null) {
+      // Item already in iCount (matched by SKU). Try to update it; if iCount's
+      // update endpoint isn't available, leave the existing item untouched
+      // rather than failing the whole sync.
+      try {
+        await icountRequest("inventory/update_item", {
+          inventory_item_id: existingId,
           ...toIcountFields(item),
         });
         result.updated++;
-      } else {
-        await icountRequest("inventory/add_item", toIcountFields(item));
-        result.created++;
+      } catch {
+        result.skipped++;
       }
+      continue;
+    }
+    try {
+      await icountRequest("inventory/add_item", toIcountFields(item));
+      result.created++;
     } catch (err) {
       result.errors.push(
         `${item.sku}: ${err instanceof Error ? err.message : "שגיאה"}`
