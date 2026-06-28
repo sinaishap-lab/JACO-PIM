@@ -122,6 +122,69 @@ function parse(formData: FormData) {
   });
 }
 
+// ── Helpers for the unified create form ─────────────────────────────────────
+
+function parseJsonArray(
+  value: FormDataEntryValue | null
+): Record<string, unknown>[] {
+  if (typeof value !== "string" || !value.trim()) return [];
+  try {
+    const v = JSON.parse(value);
+    return Array.isArray(v) ? (v as Record<string, unknown>[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function strOrNull(v: unknown): string | null {
+  return typeof v === "string" && v.trim() ? v.trim() : null;
+}
+
+function numOrNull(v: unknown): number | null {
+  if (v == null || v === "") return null;
+  const n = Number(v);
+  return Number.isNaN(n) ? null : n;
+}
+
+/** Reads all dynamic attribute values (both audiences) from the form. */
+async function readAttributeValues(
+  formData: FormData
+): Promise<Record<string, unknown>> {
+  const attributes = await listAttributes();
+  const values: Record<string, unknown> = {};
+  for (const attr of attributes) {
+    const field = `attr_${attr.id}`;
+    switch (attr.type) {
+      case "number": {
+        const raw = formData.get(field);
+        const num = typeof raw === "string" && raw.trim() ? Number(raw) : null;
+        values[attr.id] = num === null || Number.isNaN(num) ? null : num;
+        break;
+      }
+      case "boolean":
+        values[attr.id] = formData.get(field) === "on";
+        break;
+      case "multiselect": {
+        const picked = formData
+          .getAll(field)
+          .filter((v): v is string => typeof v === "string" && v.trim() !== "");
+        values[attr.id] = picked.length ? picked : null;
+        break;
+      }
+      default: {
+        const raw = formData.get(field);
+        values[attr.id] =
+          typeof raw === "string" && raw.trim() ? raw.trim() : null;
+      }
+    }
+  }
+  return values;
+}
+
+/**
+ * Creates a product together with all its related data in one submit:
+ * suppliers, sizes, colors, recipe, per-variant supplier SKUs and attributes.
+ */
 export async function createProductAction(
   _prev: ProductFormState,
   formData: FormData
@@ -130,14 +193,77 @@ export async function createProductAction(
   if (!parsed.success) {
     return { fieldErrors: z.flattenError(parsed.error).fieldErrors };
   }
+  let productId = "";
   try {
     const product = await createProduct(parsed.data);
-    await regenerateProductSku(product.id);
+    productId = product.id;
+
+    // Suppliers
+    for (const s of parseJsonArray(formData.get("suppliers"))) {
+      const supplierId = strOrNull(s.supplierId);
+      if (!supplierId) continue;
+      await addProductSupplier(productId, {
+        supplierId,
+        supplierSku: strOrNull(s.supplierSku),
+        supplierName: strOrNull(s.supplierName),
+        costPrice: numOrNull(s.costPrice),
+        isPreferred: Boolean(s.isPreferred),
+      });
+    }
+
+    // Sizes
+    for (const sz of parseJsonArray(formData.get("sizes"))) {
+      const value = strOrNull(sz.value);
+      if (value) await addSize(productId, value, numOrNull(sz.price));
+    }
+
+    // Colors
+    for (const c of parseJsonArray(formData.get("colors"))) {
+      const value = strOrNull(c.value);
+      if (!value) continue;
+      const letterRaw = strOrNull(c.letter);
+      await addColor(
+        productId,
+        value,
+        letterRaw ? letterRaw.slice(0, 3).toUpperCase() : null
+      );
+    }
+
+    // Recipe (BOM)
+    for (const cmp of parseJsonArray(formData.get("components"))) {
+      const componentId = strOrNull(cmp.componentId);
+      const quantity = numOrNull(cmp.quantity);
+      if (componentId && quantity && quantity > 0) {
+        await addComponent(productId, componentId, quantity);
+      }
+    }
+
+    // Per-variant supplier SKUs (grouped by supplier)
+    const bySupplier = new Map<
+      string,
+      { size: string | null; color: string | null; sku: string | null }[]
+    >();
+    for (const v of parseJsonArray(formData.get("variantSkus"))) {
+      const supplierId = strOrNull(v.supplierId);
+      const sku = strOrNull(v.sku);
+      if (!supplierId || !sku) continue;
+      const arr = bySupplier.get(supplierId) ?? [];
+      arr.push({ size: strOrNull(v.size), color: strOrNull(v.color), sku });
+      bySupplier.set(supplierId, arr);
+    }
+    for (const [sid, entries] of bySupplier) {
+      await setSupplierVariantSkus(productId, sid, entries);
+    }
+
+    // Attributes
+    await setProductAttributeValues(productId, await readAttributeValues(formData));
+
+    await regenerateProductSku(productId);
   } catch (err) {
     return { error: err instanceof Error ? err.message : "שגיאה ביצירת המוצר" };
   }
   revalidatePath("/products");
-  redirect("/products");
+  redirect(`/products/${productId}`);
 }
 
 export async function updateProductAction(

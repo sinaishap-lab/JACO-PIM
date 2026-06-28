@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import { ProductForm } from "@/components/products/product-form";
+import { ProductCreateForm } from "@/components/products/product-create-form";
 import { createProductAction } from "../actions";
 import { listClassificationTree } from "@/lib/services/classification.service";
+import { listSuppliers } from "@/lib/services/supplier.service";
+import { listRawMaterials } from "@/lib/services/component.service";
+import { listAttributes } from "@/lib/services/attribute.service";
 import type { ProductType } from "@/lib/types";
 
 export default async function NewProductPage({
@@ -15,7 +18,13 @@ export default async function NewProductPage({
   const initialType: ProductType =
     type === "raw_material" ? "raw_material" : "finished";
   const isMaterial = initialType === "raw_material";
-  const tree = await listClassificationTree().catch(() => []);
+
+  const [tree, suppliers, rawMaterials, attributes] = await Promise.all([
+    listClassificationTree().catch(() => []),
+    listSuppliers().catch(() => []),
+    isMaterial ? Promise.resolve([]) : listRawMaterials().catch(() => []),
+    listAttributes().catch(() => []),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -30,13 +39,16 @@ export default async function NewProductPage({
         <h1 className="text-2xl font-bold tracking-tight">
           {isMaterial ? "חומר גלם חדש" : "מוצר חדש"}
         </h1>
-        <p className="text-muted-foreground">הוספה לקטלוג</p>
+        <p className="text-muted-foreground">כל הפרטים במסך אחד</p>
       </header>
 
-      <ProductForm
+      <ProductCreateForm
         action={createProductAction}
         initialType={initialType}
         tree={tree}
+        suppliers={suppliers}
+        rawMaterials={rawMaterials}
+        attributes={attributes}
       />
     </div>
   );
