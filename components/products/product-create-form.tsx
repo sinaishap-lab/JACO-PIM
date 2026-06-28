@@ -731,11 +731,19 @@ export function ProductCreateForm({
       </section>
 
       {/* ── Per-variant supplier SKUs ── */}
-      {sized && hasVariants && linkedSuppliers.length > 0 && (
+      {sized && hasVariants && (
         <section className="space-y-4 border-t pt-6">
           <h2 className="text-lg font-semibold">
             מק&quot;ט ועלות ספק לכל וריאנט
           </h2>
+          <p className="text-muted-foreground text-sm">
+            כאן מזינים את מק&quot;ט הספק והעלות לכל גודל — לא בשדה הגודל.
+          </p>
+          {linkedSuppliers.length === 0 && (
+            <p className="text-destructive text-sm">
+              הוסיפו ספק בקטע &quot;ספקים&quot; למעלה כדי להזין מק&quot;ט ועלות.
+            </p>
+          )}
           {linkedSuppliers.map((sup) => (
             <div key={sup.supplierId} className="space-y-2">
               <h3 className="text-sm font-semibold">
