@@ -30,6 +30,7 @@ export function ProductForm({
   tree = [],
   suppliers = [],
   preferredSupplierId,
+  preferredSupplierSku,
 }: {
   action: Action;
   product?: Product;
@@ -37,6 +38,7 @@ export function ProductForm({
   tree?: DepartmentNode[];
   suppliers?: Supplier[];
   preferredSupplierId?: string | null;
+  preferredSupplierSku?: string | null;
 }) {
   const [state, formAction, pending] = useActionState<
     ProductFormState,
@@ -121,25 +123,38 @@ export function ProductForm({
         )}
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="supplierId">ספק עיקרי</Label>
-        <select
-          id="supplierId"
-          name="supplierId"
-          defaultValue={preferredSupplierId ?? ""}
-          className={selectClass}
-        >
-          <option value="">— ללא —</option>
-          {suppliers.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-              {s.code ? ` (${s.code})` : ""}
-            </option>
-          ))}
-        </select>
-        <p className="text-muted-foreground text-xs">
-          הספק העיקרי של המוצר. קוד הספק משמש לג&apos;ינרוט המק&quot;ט. ניתן
-          להוסיף ספקים נוספים ופרטי עלות במסך המוצר.
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="supplierId">ספק עיקרי</Label>
+          <select
+            id="supplierId"
+            name="supplierId"
+            defaultValue={preferredSupplierId ?? ""}
+            className={selectClass}
+          >
+            <option value="">— ללא —</option>
+            {suppliers.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+                {s.code ? ` (${s.code})` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="supplierSku">מק&quot;ט אצל הספק</Label>
+          <Input
+            id="supplierSku"
+            name="supplierSku"
+            dir="ltr"
+            defaultValue={preferredSupplierSku ?? ""}
+            placeholder="מספר הפריט אצל הספק"
+          />
+        </div>
+        <p className="text-muted-foreground text-xs sm:col-span-2">
+          הספק העיקרי של המוצר והמק&quot;ט שלו אצלו (לא המק&quot;ט הפנימי). קוד
+          הספק משמש לג&apos;ינרוט המק&quot;ט. ספקים נוספים, כל אחד עם מק&quot;ט
+          ועלות משלו, מנוהלים בסקציית &quot;ספקים&quot; שבמסך המוצר.
         </p>
       </div>
 

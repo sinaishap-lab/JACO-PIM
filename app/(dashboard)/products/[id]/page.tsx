@@ -63,8 +63,9 @@ export default async function EditProductPage({
   const customerAttributes = attributes.filter(
     (a) => a.audience === "customer"
   );
-  const preferredSupplierId =
-    productSuppliers.find((l) => l.isPreferred)?.supplierId ?? null;
+  const preferredLink = productSuppliers.find((l) => l.isPreferred);
+  const preferredSupplierId = preferredLink?.supplierId ?? null;
+  const preferredSupplierSku = preferredLink?.supplierSku ?? null;
 
   const action = updateProductAction.bind(null, id);
 
@@ -95,6 +96,7 @@ export default async function EditProductPage({
           tree={tree}
           suppliers={suppliers}
           preferredSupplierId={preferredSupplierId}
+          preferredSupplierSku={preferredSupplierSku}
         />
       </section>
 
