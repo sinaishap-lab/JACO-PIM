@@ -238,6 +238,16 @@ export async function setPreferredSupplier(
   if (error) throw new Error(error.message);
 }
 
+/** Removes all supplier links for a product (used before a full re-save). */
+export async function clearProductSuppliers(productId: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("product_suppliers")
+    .delete()
+    .eq("product_id", productId);
+  if (error) throw new Error(error.message);
+}
+
 export async function removeProductSupplier(rowId: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase

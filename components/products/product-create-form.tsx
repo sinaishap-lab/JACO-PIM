@@ -13,6 +13,7 @@ import { usageUnitOptions } from "@/lib/schemas/product";
 import type { ProductFormState } from "@/app/(dashboard)/products/actions";
 import type {
   AttributeDefinition,
+  Product,
   ProductType,
   Supplier,
 } from "@/lib/types";
@@ -29,17 +30,29 @@ type Action = (
   formData: FormData
 ) => Promise<ProductFormState>;
 
-type SupplierRow = {
+export type SupplierRow = {
   supplierId: string;
   costPrice: string;
   supplierSku: string;
   supplierName: string;
   isPreferred: boolean;
 };
-type SizeRow = { value: string; price: string; costPrice: string };
+export type SizeRow = { value: string; price: string; costPrice: string };
 type PricingMode = "single" | "sized";
-type ColorRow = { value: string; letter: string };
-type ComponentRow = { componentId: string; quantity: string };
+export type ColorRow = { value: string; letter: string };
+export type ComponentRow = { componentId: string; quantity: string };
+
+/** Initial collection data when editing an existing product. */
+export type ProductFormInitial = {
+  pricingMode: PricingMode;
+  suppliers: SupplierRow[];
+  sizes: SizeRow[];
+  colors: ColorRow[];
+  components: ComponentRow[];
+  variantSku: Record<string, string>;
+  variantCost: Record<string, string>;
+  fieldValues: Record<string, unknown>;
+};
 
 function vKey(supplierId: string, size: string | null, color: string | null) {
   return `${supplierId}::${size ?? ""}::${color ?? ""}`;
@@ -47,46 +60,67 @@ function vKey(supplierId: string, size: string | null, color: string | null) {
 
 export function ProductCreateForm({
   action,
+  product,
   initialType,
   tree = [],
   suppliers = [],
   rawMaterials = [],
   attributes = [],
+  initial,
 }: {
   action: Action;
+  product?: Product;
   initialType?: ProductType;
   tree?: DepartmentNode[];
   suppliers?: Supplier[];
   rawMaterials?: RawMaterialOption[];
   attributes?: AttributeDefinition[];
+  initial?: ProductFormInitial;
 }) {
   const [state, formAction, pending] = useActionState<
     ProductFormState,
     FormData
   >(action, {});
 
-  const type: ProductType = initialType ?? "finished";
+  const type: ProductType = product?.type ?? initialType ?? "finished";
   const isFinished = type === "finished";
-  const [pricingMode, setPricingMode] = useState<PricingMode>("single");
+  const [pricingMode, setPricingMode] = useState<PricingMode>(
+    initial?.pricingMode ?? "single"
+  );
   const sized = isFinished && pricingMode === "sized";
 
-  const [deptId, setDeptId] = useState("");
-  const [subId, setSubId] = useState("");
-  const [modelId, setModelId] = useState("");
+  const [deptId, setDeptId] = useState(product?.departmentId ?? "");
+  const [subId, setSubId] = useState(product?.subDepartmentId ?? "");
+  const [modelId, setModelId] = useState(product?.modelId ?? "");
   const subOptions = tree.find((d) => d.id === deptId)?.subDepartments ?? [];
   const modelOptions = subOptions.find((s) => s.id === subId)?.models ?? [];
 
-  const [costStr, setCostStr] = useState("");
-  const [saleStr, setSaleStr] = useState("");
-  const [contentStr, setContentStr] = useState("");
-  const [usageUnit, setUsageUnit] = useState("יחידה");
+  const [costStr, setCostStr] = useState(
+    product?.costPrice != null ? String(product.costPrice) : ""
+  );
+  const [saleStr, setSaleStr] = useState(
+    product?.salePrice != null ? String(product.salePrice) : ""
+  );
+  const [contentStr, setContentStr] = useState(
+    product?.contentAmount != null ? String(product.contentAmount) : ""
+  );
+  const [usageUnit, setUsageUnit] = useState(product?.usageUnit ?? "יחידה");
 
-  const [supplierRows, setSupplierRows] = useState<SupplierRow[]>([]);
-  const [sizes, setSizes] = useState<SizeRow[]>([]);
-  const [colors, setColors] = useState<ColorRow[]>([]);
-  const [components, setComponents] = useState<ComponentRow[]>([]);
-  const [variantSku, setVariantSku] = useState<Record<string, string>>({});
-  const [variantCost, setVariantCost] = useState<Record<string, string>>({});
+  const [supplierRows, setSupplierRows] = useState<SupplierRow[]>(
+    initial?.suppliers ?? []
+  );
+  const [sizes, setSizes] = useState<SizeRow[]>(initial?.sizes ?? []);
+  const [colors, setColors] = useState<ColorRow[]>(initial?.colors ?? []);
+  const [components, setComponents] = useState<ComponentRow[]>(
+    initial?.components ?? []
+  );
+  const [variantSku, setVariantSku] = useState<Record<string, string>>(
+    initial?.variantSku ?? {}
+  );
+  const [variantCost, setVariantCost] = useState<Record<string, string>>(
+    initial?.variantCost ?? {}
+  );
+  const fieldValues = initial?.fieldValues ?? {};
 
   const errorText = "text-destructive text-sm";
 
@@ -130,8 +164,17 @@ export function ProductCreateForm({
       .filter((e) => e.sku.trim() || e.cost.trim())
   );
 
-  // Which extra fields are enabled (default: all off).
-  const [fieldOn, setFieldOn] = useState<Record<string, boolean>>({});
+  // Which extra fields are enabled (on if they already hold a value).
+  const [fieldOn, setFieldOn] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(
+      attributes.map((a) => {
+        const v = fieldValues[a.id];
+        const on =
+          v != null && v !== "" && !(Array.isArray(v) && v.length === 0);
+        return [a.id, on];
+      })
+    )
+  );
 
   const supplierName = (id: string) =>
     suppliers.find((s) => s.id === id)?.name ?? "ספק";
@@ -178,11 +221,26 @@ export function ProductCreateForm({
       {/* ── Basic ── */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">פרטים בסיסיים</h2>
+        {product && (
+          <div className="space-y-1">
+            <Label>מק&quot;ט</Label>
+            {product.sku ? (
+              <p className="font-mono text-sm" dir="ltr">
+                {product.sku}
+              </p>
+            ) : (
+              <p className="text-muted-foreground text-sm">
+                ייווצר אוטומטית מקוד הספק, הסיווג והמספר הרץ.
+              </p>
+            )}
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="name">שם המוצר *</Label>
           <Input
             id="name"
             name="name"
+            defaultValue={product?.name}
             aria-invalid={Boolean(state.fieldErrors?.name)}
             placeholder="לדוגמה: תמונה מודפסת 10x15"
           />
@@ -280,7 +338,12 @@ export function ProductCreateForm({
             </div>
             <div className="space-y-2">
               <Label htmlFor="packUnit">יחידת רכישה</Label>
-              <Input id="packUnit" name="packUnit" placeholder="גליל / פלטה" />
+              <Input
+                id="packUnit"
+                name="packUnit"
+                defaultValue={product?.packUnit ?? ""}
+                placeholder="גליל / פלטה"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="contentAmount">כמות באריזה</Label>
@@ -326,7 +389,12 @@ export function ProductCreateForm({
 
         <div className="space-y-2">
           <Label htmlFor="description">תיאור</Label>
-          <Textarea id="description" name="description" rows={3} />
+          <Textarea
+            id="description"
+            name="description"
+            rows={3}
+            defaultValue={product?.description ?? ""}
+          />
         </div>
 
         {tree.length > 0 && (
@@ -818,7 +886,9 @@ export function ProductCreateForm({
                   />
                   {a.label}
                 </label>
-                {fieldOn[a.id] && <AttributeInput attr={a} />}
+                {fieldOn[a.id] && (
+                  <AttributeInput attr={a} value={fieldValues[a.id]} />
+                )}
               </div>
             ))}
           </div>
@@ -827,7 +897,7 @@ export function ProductCreateForm({
 
       <div className="flex gap-2 border-t pt-6">
         <Button type="submit" disabled={pending} className="bg-brand-gradient hover:brightness-105">
-          {pending ? "שומר…" : "צור מוצר"}
+          {pending ? "שומר…" : product ? "שמירת שינויים" : "צור מוצר"}
         </Button>
         <Button type="button" variant="outline" asChild>
           <Link href={isFinished ? "/products" : "/materials"}>ביטול</Link>
@@ -838,8 +908,16 @@ export function ProductCreateForm({
 }
 
 /** The control for one extra field (label is carried by the enable toggle). */
-function AttributeInput({ attr }: { attr: AttributeDefinition }) {
+function AttributeInput({
+  attr,
+  value,
+}: {
+  attr: AttributeDefinition;
+  value?: unknown;
+}) {
   const field = `attr_${attr.id}`;
+  const str = value == null ? "" : String(value);
+  const selected = Array.isArray(value) ? value.map((v) => String(v)) : [];
 
   if (attr.type === "boolean") {
     return (
@@ -847,6 +925,7 @@ function AttributeInput({ attr }: { attr: AttributeDefinition }) {
         <input
           type="checkbox"
           name={field}
+          defaultChecked={value === true}
           className="border-input size-4 rounded"
         />
         כן
@@ -863,6 +942,7 @@ function AttributeInput({ attr }: { attr: AttributeDefinition }) {
               type="checkbox"
               name={field}
               value={opt}
+              defaultChecked={selected.includes(opt)}
               className="border-input size-4 rounded"
             />
             {opt}
@@ -874,7 +954,7 @@ function AttributeInput({ attr }: { attr: AttributeDefinition }) {
 
   if (attr.type === "select") {
     return (
-      <select id={field} name={field} className={selectClass}>
+      <select id={field} name={field} defaultValue={str} className={selectClass}>
         <option value="">— ללא —</option>
         {(attr.options ?? []).map((opt) => (
           <option key={opt} value={opt}>
@@ -897,6 +977,7 @@ function AttributeInput({ attr }: { attr: AttributeDefinition }) {
             : "text"
       }
       step={attr.type === "number" ? "any" : undefined}
+      defaultValue={str}
     />
   );
 }

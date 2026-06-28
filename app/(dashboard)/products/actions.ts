@@ -15,20 +15,26 @@ import { setProductAttributeValues } from "@/lib/services/attribute-value.servic
 import {
   addComponent,
   removeComponent,
+  clearComponents,
 } from "@/lib/services/component.service";
 import {
   addProductSupplier,
   removeProductSupplier,
   setPreferredSupplier,
+  clearProductSuppliers,
 } from "@/lib/services/product-supplier.service";
 import {
   addSize,
   removeSize,
   addColor,
   removeColor,
+  clearVariants,
 } from "@/lib/services/variant.service";
 import { regenerateProductSku } from "@/lib/services/sku.service";
-import { setSupplierVariantSkus } from "@/lib/services/supplier-variant-sku.service";
+import {
+  setSupplierVariantSkus,
+  clearSupplierVariantSkus,
+} from "@/lib/services/supplier-variant-sku.service";
 
 /** Result returned to the form via useActionState. */
 export type ProductFormState = {
@@ -163,86 +169,7 @@ export async function createProductAction(
   try {
     const product = await createProduct(parsed.data);
     productId = product.id;
-
-    // Suppliers
-    for (const s of parseJsonArray(formData.get("suppliers"))) {
-      const supplierId = strOrNull(s.supplierId);
-      if (!supplierId) continue;
-      await addProductSupplier(productId, {
-        supplierId,
-        supplierSku: strOrNull(s.supplierSku),
-        supplierName: strOrNull(s.supplierName),
-        costPrice: numOrNull(s.costPrice),
-        isPreferred: Boolean(s.isPreferred),
-      });
-    }
-
-    // Sizes (each with its own sell + buy price)
-    for (const sz of parseJsonArray(formData.get("sizes"))) {
-      const value = strOrNull(sz.value);
-      if (value) {
-        await addSize(
-          productId,
-          value,
-          numOrNull(sz.price),
-          numOrNull(sz.costPrice)
-        );
-      }
-    }
-
-    // Colors
-    for (const c of parseJsonArray(formData.get("colors"))) {
-      const value = strOrNull(c.value);
-      if (!value) continue;
-      const letterRaw = strOrNull(c.letter);
-      await addColor(
-        productId,
-        value,
-        letterRaw ? letterRaw.slice(0, 3).toUpperCase() : null
-      );
-    }
-
-    // Recipe (BOM)
-    for (const cmp of parseJsonArray(formData.get("components"))) {
-      const componentId = strOrNull(cmp.componentId);
-      const quantity = numOrNull(cmp.quantity);
-      if (componentId && quantity && quantity > 0) {
-        await addComponent(productId, componentId, quantity);
-      }
-    }
-
-    // Per-variant supplier SKUs + cost (grouped by supplier)
-    const bySupplier = new Map<
-      string,
-      {
-        size: string | null;
-        color: string | null;
-        sku: string | null;
-        cost: number | null;
-      }[]
-    >();
-    for (const v of parseJsonArray(formData.get("variantSkus"))) {
-      const supplierId = strOrNull(v.supplierId);
-      const sku = strOrNull(v.sku);
-      const cost = numOrNull(v.cost);
-      if (!supplierId || (!sku && cost == null)) continue;
-      const arr = bySupplier.get(supplierId) ?? [];
-      arr.push({
-        size: strOrNull(v.size),
-        color: strOrNull(v.color),
-        sku,
-        cost,
-      });
-      bySupplier.set(supplierId, arr);
-    }
-    for (const [sid, entries] of bySupplier) {
-      await setSupplierVariantSkus(productId, sid, entries);
-    }
-
-    // Attributes
-    await setProductAttributeValues(productId, await readAttributeValues(formData));
-
-    await regenerateProductSku(productId);
+    await persistProductCollections(productId, formData);
   } catch (err) {
     return { error: err instanceof Error ? err.message : "שגיאה ביצירת המוצר" };
   }
@@ -250,6 +177,90 @@ export async function createProductAction(
   redirect(`/products/${productId}`);
 }
 
+/**
+ * Persists a product's collections (suppliers, sizes, colors, recipe,
+ * per-variant supplier SKU+cost, fields) from a unified form, then regenerates
+ * the SKU. Shared by create and update.
+ */
+async function persistProductCollections(
+  productId: string,
+  formData: FormData
+): Promise<void> {
+  // Suppliers
+  for (const s of parseJsonArray(formData.get("suppliers"))) {
+    const supplierId = strOrNull(s.supplierId);
+    if (!supplierId) continue;
+    await addProductSupplier(productId, {
+      supplierId,
+      supplierSku: strOrNull(s.supplierSku),
+      supplierName: strOrNull(s.supplierName),
+      costPrice: numOrNull(s.costPrice),
+      isPreferred: Boolean(s.isPreferred),
+    });
+  }
+
+  // Sizes (each with its own sell price)
+  for (const sz of parseJsonArray(formData.get("sizes"))) {
+    const value = strOrNull(sz.value);
+    if (value) {
+      await addSize(productId, value, numOrNull(sz.price), numOrNull(sz.costPrice));
+    }
+  }
+
+  // Colors
+  for (const c of parseJsonArray(formData.get("colors"))) {
+    const value = strOrNull(c.value);
+    if (!value) continue;
+    const letterRaw = strOrNull(c.letter);
+    await addColor(
+      productId,
+      value,
+      letterRaw ? letterRaw.slice(0, 3).toUpperCase() : null
+    );
+  }
+
+  // Recipe (BOM)
+  for (const cmp of parseJsonArray(formData.get("components"))) {
+    const componentId = strOrNull(cmp.componentId);
+    const quantity = numOrNull(cmp.quantity);
+    if (componentId && quantity && quantity > 0) {
+      await addComponent(productId, componentId, quantity);
+    }
+  }
+
+  // Per-variant supplier SKUs + cost (grouped by supplier)
+  const bySupplier = new Map<
+    string,
+    {
+      size: string | null;
+      color: string | null;
+      sku: string | null;
+      cost: number | null;
+    }[]
+  >();
+  for (const v of parseJsonArray(formData.get("variantSkus"))) {
+    const supplierId = strOrNull(v.supplierId);
+    const sku = strOrNull(v.sku);
+    const cost = numOrNull(v.cost);
+    if (!supplierId || (!sku && cost == null)) continue;
+    const arr = bySupplier.get(supplierId) ?? [];
+    arr.push({ size: strOrNull(v.size), color: strOrNull(v.color), sku, cost });
+    bySupplier.set(supplierId, arr);
+  }
+  for (const [sid, entries] of bySupplier) {
+    await setSupplierVariantSkus(productId, sid, entries);
+  }
+
+  // Fields (dynamic attribute values)
+  await setProductAttributeValues(productId, await readAttributeValues(formData));
+
+  await regenerateProductSku(productId);
+}
+
+/**
+ * Updates a product and ALL its related data in one save: replaces suppliers,
+ * sizes, colors, recipe and per-variant rows with the submitted set.
+ */
 export async function updateProductAction(
   id: string,
   _prev: ProductFormState,
@@ -261,11 +272,17 @@ export async function updateProductAction(
   }
   try {
     await updateProduct(id, parsed.data);
-    await regenerateProductSku(id);
+    // Clear existing collections, then re-persist the submitted set.
+    await clearProductSuppliers(id);
+    await clearVariants(id);
+    await clearComponents(id);
+    await clearSupplierVariantSkus(id);
+    await persistProductCollections(id, formData);
   } catch (err) {
     return { error: err instanceof Error ? err.message : "שגיאה בעדכון המוצר" };
   }
   revalidatePath("/products");
+  revalidatePath("/materials");
   revalidatePath(`/products/${id}`);
   redirect("/products");
 }

@@ -145,6 +145,16 @@ export async function removeComponent(
   if (error) throw new Error(error.message);
 }
 
+/** Removes the entire recipe of a product (used before a full re-save). */
+export async function clearComponents(productId: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("product_components")
+    .delete()
+    .eq("product_id", productId);
+  if (error) throw new Error(error.message);
+}
+
 /** Computed cost of a finished product = Σ(unit cost × quantity). */
 export function computeCost(lines: ComponentLine[]): number {
   return lines.reduce(

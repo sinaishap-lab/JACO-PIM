@@ -130,6 +130,18 @@ export async function getSizedCostRangeMap(
   return result;
 }
 
+/** Removes all per-variant supplier rows for a product (before a full re-save). */
+export async function clearSupplierVariantSkus(
+  productId: string
+): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("supplier_variant_skus")
+    .delete()
+    .eq("product_id", productId);
+  if (error) throw new Error(error.message);
+}
+
 /**
  * Upserts (or deletes when empty) a set of per-variant rows for one supplier.
  * Each entry is { size, color, sku, cost } — size/color null for an absent axis.

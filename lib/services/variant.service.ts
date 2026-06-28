@@ -102,3 +102,18 @@ export async function removeColor(id: string): Promise<void> {
   const { error } = await supabase.from("product_colors").delete().eq("id", id);
   if (error) throw new Error(error.message);
 }
+
+/** Removes all sizes & colors of a product (used before a full re-save). */
+export async function clearVariants(productId: string): Promise<void> {
+  const supabase = await createClient();
+  const { error: se } = await supabase
+    .from("product_sizes")
+    .delete()
+    .eq("product_id", productId);
+  if (se) throw new Error(se.message);
+  const { error: ce } = await supabase
+    .from("product_colors")
+    .delete()
+    .eq("product_id", productId);
+  if (ce) throw new Error(ce.message);
+}
