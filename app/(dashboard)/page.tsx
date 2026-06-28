@@ -1,11 +1,5 @@
 import Link from "next/link";
-import {
-  Package,
-  Boxes,
-  Truck,
-  FolderTree,
-  SlidersHorizontal,
-} from "lucide-react";
+import { Package, Boxes, Truck, FolderTree } from "lucide-react";
 
 import {
   Card,
@@ -38,12 +32,6 @@ const sections = [
     title: "סיווג",
     description: "מחלקה ← תת-מחלקה ← דגם",
     icon: FolderTree,
-  },
-  {
-    href: "/attributes",
-    title: "מאפיינים",
-    description: "מאפיינים דינמיים — הלב של ה-PIM",
-    icon: SlidersHorizontal,
   },
 ];
 

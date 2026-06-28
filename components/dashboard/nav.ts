@@ -3,7 +3,6 @@ import {
   Package,
   Boxes,
   FolderTree,
-  SlidersHorizontal,
   Images,
   Truck,
   type LucideIcon,
@@ -22,7 +21,6 @@ export const navItems: NavItem[] = [
   { href: "/materials", label: "חומרי גלם", icon: Boxes },
   { href: "/suppliers", label: "ספקים", icon: Truck },
   { href: "/classification", label: "סיווג", icon: FolderTree },
-  { href: "/attributes", label: "מאפיינים", icon: SlidersHorizontal },
   { href: "/media", label: "מדיה", icon: Images },
 ];
 

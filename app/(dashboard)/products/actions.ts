@@ -45,45 +45,11 @@ export type AttributeValuesState = { ok?: boolean; error?: string };
  */
 export async function saveProductAttributesAction(
   productId: string,
-  audience: "supplier" | "customer",
   _prev: AttributeValuesState,
   formData: FormData
 ): Promise<AttributeValuesState> {
   try {
-    // Only the attributes of this section's audience appear in the form, so we
-    // scope the write to them — otherwise saving one section would wipe the
-    // other section's values.
-    const attributes = (await listAttributes()).filter(
-      (a) => a.audience === audience
-    );
-    const values: Record<string, unknown> = {};
-
-    for (const attr of attributes) {
-      const field = `attr_${attr.id}`;
-      const raw = formData.get(field);
-      switch (attr.type) {
-        case "number": {
-          const num = typeof raw === "string" && raw.trim() ? Number(raw) : null;
-          values[attr.id] = num === null || Number.isNaN(num) ? null : num;
-          break;
-        }
-        case "boolean":
-          values[attr.id] = raw === "on";
-          break;
-        case "multiselect": {
-          const picked = formData
-            .getAll(field)
-            .filter((v): v is string => typeof v === "string" && v.trim() !== "");
-          values[attr.id] = picked.length ? picked : null;
-          break;
-        }
-        default:
-          values[attr.id] =
-            typeof raw === "string" && raw.trim() ? raw.trim() : null;
-      }
-    }
-
-    await setProductAttributeValues(productId, values);
+    await setProductAttributeValues(productId, await readAttributeValues(formData));
   } catch (err) {
     return {
       error: err instanceof Error ? err.message : "שגיאה בשמירת המאפיינים",

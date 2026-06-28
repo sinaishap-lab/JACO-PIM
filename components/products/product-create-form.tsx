@@ -130,8 +130,8 @@ export function ProductCreateForm({
       .filter((e) => e.sku.trim() || e.cost.trim())
   );
 
-  const supplierAttrs = attributes.filter((a) => a.audience === "supplier");
-  const customerAttrs = attributes.filter((a) => a.audience === "customer");
+  // Which extra fields are enabled (default: all off).
+  const [fieldOn, setFieldOn] = useState<Record<string, boolean>>({});
 
   const supplierName = (id: string) =>
     suppliers.find((s) => s.id === id)?.name ?? "ספק";
@@ -800,23 +800,26 @@ export function ProductCreateForm({
         </section>
       )}
 
-      {/* ── Attributes ── */}
-      {supplierAttrs.length > 0 && (
+      {/* ── Extra fields ── */}
+      {attributes.length > 0 && (
         <section className="space-y-4 border-t pt-6">
-          <h2 className="text-lg font-semibold">מאפייני ספק</h2>
-          <div className="grid gap-5 sm:grid-cols-2">
-            {supplierAttrs.map((a) => (
-              <AttributeInput key={a.id} attr={a} />
-            ))}
-          </div>
-        </section>
-      )}
-      {customerAttrs.length > 0 && (
-        <section className="space-y-4 border-t pt-6">
-          <h2 className="text-lg font-semibold">מאפייני לקוח</h2>
-          <div className="grid gap-5 sm:grid-cols-2">
-            {customerAttrs.map((a) => (
-              <AttributeInput key={a.id} attr={a} />
+          <h2 className="text-lg font-semibold">שדות נוספים</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {attributes.map((a) => (
+              <div key={a.id} className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium">
+                  <input
+                    type="checkbox"
+                    checked={fieldOn[a.id] ?? false}
+                    onChange={(e) =>
+                      setFieldOn((p) => ({ ...p, [a.id]: e.target.checked }))
+                    }
+                    className="border-input size-4 rounded"
+                  />
+                  {a.label}
+                </label>
+                {fieldOn[a.id] && <AttributeInput attr={a} />}
+              </div>
             ))}
           </div>
         </section>
@@ -834,69 +837,66 @@ export function ProductCreateForm({
   );
 }
 
-/** A single dynamic-attribute input (uncontrolled, named attr_<id>). */
+/** The control for one extra field (label is carried by the enable toggle). */
 function AttributeInput({ attr }: { attr: AttributeDefinition }) {
   const field = `attr_${attr.id}`;
 
   if (attr.type === "boolean") {
     return (
-      <label className="flex items-center gap-2 text-sm font-medium">
+      <label className="flex items-center gap-2 text-sm">
         <input
           type="checkbox"
           name={field}
           className="border-input size-4 rounded"
         />
-        {attr.label}
+        כן
       </label>
     );
   }
 
+  if (attr.type === "multiselect") {
+    return (
+      <div className="space-y-1.5 rounded-md border p-3">
+        {(attr.options ?? []).map((opt) => (
+          <label key={opt} className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name={field}
+              value={opt}
+              className="border-input size-4 rounded"
+            />
+            {opt}
+          </label>
+        ))}
+      </div>
+    );
+  }
+
+  if (attr.type === "select") {
+    return (
+      <select id={field} name={field} className={selectClass}>
+        <option value="">— ללא —</option>
+        {(attr.options ?? []).map((opt) => (
+          <option key={opt} value={opt}>
+            {opt}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
   return (
-    <div className="space-y-2">
-      <Label htmlFor={field}>
-        {attr.label}
-        {attr.required && " *"}
-      </Label>
-      {attr.type === "multiselect" ? (
-        <div className="space-y-1.5 rounded-md border p-3">
-          {(attr.options ?? []).map((opt) => (
-            <label
-              key={opt}
-              className="flex items-center gap-2 text-sm font-medium"
-            >
-              <input
-                type="checkbox"
-                name={field}
-                value={opt}
-                className="border-input size-4 rounded"
-              />
-              {opt}
-            </label>
-          ))}
-        </div>
-      ) : attr.type === "select" ? (
-        <select id={field} name={field} className={selectClass}>
-          <option value="">— ללא —</option>
-          {(attr.options ?? []).map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
-          ))}
-        </select>
-      ) : (
-        <Input
-          id={field}
-          name={field}
-          type={
-            attr.type === "number"
-              ? "number"
-              : attr.type === "date"
-                ? "date"
-                : "text"
-          }
-          step={attr.type === "number" ? "any" : undefined}
-        />
-      )}
-    </div>
+    <Input
+      id={field}
+      name={field}
+      type={
+        attr.type === "number"
+          ? "number"
+          : attr.type === "date"
+            ? "date"
+            : "text"
+      }
+      step={attr.type === "number" ? "any" : undefined}
+    />
   );
 }
