@@ -389,6 +389,140 @@ export function ProductCreateForm({
         )}
       </section>
 
+      {/* ── Variants (sized finished products) ── */}
+      {sized && (
+        <section className="grid gap-6 border-t pt-6 lg:grid-cols-2">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">גדלים (מחיר לכל גודל)</h2>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setSizes((s) => [
+                    ...s,
+                    { value: "", price: "", costPrice: "" },
+                  ])
+                }
+              >
+                <Plus />
+                גודל
+              </Button>
+            </div>
+            {sizes.map((s, i) => (
+              <div key={i} className="flex items-end gap-2">
+                <div className="flex-1 space-y-1">
+                  <label className="text-xs font-medium">גודל</label>
+                  <Input
+                    value={s.value}
+                    onChange={(e) =>
+                      setSizes((rows) =>
+                        rows.map((r, j) =>
+                          j === i ? { ...r, value: e.target.value } : r
+                        )
+                      )
+                    }
+                    placeholder="10.15"
+                  />
+                </div>
+                <div className="w-28 space-y-1">
+                  <label className="text-xs font-medium">מחיר מכירה</label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={s.price}
+                    onChange={(e) =>
+                      setSizes((rows) =>
+                        rows.map((r, j) =>
+                          j === i ? { ...r, price: e.target.value } : r
+                        )
+                      )
+                    }
+                    placeholder="0.00"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="הסר גודל"
+                  onClick={() =>
+                    setSizes((rows) => rows.filter((_, j) => j !== i))
+                  }
+                >
+                  <Trash2 className="text-destructive size-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">צבעים</h2>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setColors((c) => [...c, { value: "", letter: "" }])
+                }
+              >
+                <Plus />
+                צבע
+              </Button>
+            </div>
+            {colors.map((c, i) => (
+              <div key={i} className="flex items-end gap-2">
+                <div className="flex-1 space-y-1">
+                  <label className="text-xs font-medium">צבע</label>
+                  <Input
+                    value={c.value}
+                    onChange={(e) =>
+                      setColors((rows) =>
+                        rows.map((r, j) =>
+                          j === i ? { ...r, value: e.target.value } : r
+                        )
+                      )
+                    }
+                    placeholder="אדום"
+                  />
+                </div>
+                <div className="w-20 space-y-1">
+                  <label className="text-xs font-medium">אות</label>
+                  <Input
+                    dir="ltr"
+                    maxLength={3}
+                    className="font-mono uppercase"
+                    value={c.letter}
+                    onChange={(e) =>
+                      setColors((rows) =>
+                        rows.map((r, j) =>
+                          j === i ? { ...r, letter: e.target.value } : r
+                        )
+                      )
+                    }
+                    placeholder="R"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="הסר צבע"
+                  onClick={() =>
+                    setColors((rows) => rows.filter((_, j) => j !== i))
+                  }
+                >
+                  <Trash2 className="text-destructive size-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ── Suppliers ── */}
       <section className="space-y-3 border-t pt-6">
         <div className="flex items-center justify-between">
@@ -527,140 +661,6 @@ export function ProductCreateForm({
           </div>
         ))}
       </section>
-
-      {/* ── Variants (sized finished products) ── */}
-      {sized && (
-        <section className="grid gap-6 border-t pt-6 lg:grid-cols-2">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">גדלים (מחיר לכל גודל)</h2>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setSizes((s) => [
-                    ...s,
-                    { value: "", price: "", costPrice: "" },
-                  ])
-                }
-              >
-                <Plus />
-                גודל
-              </Button>
-            </div>
-            {sizes.map((s, i) => (
-              <div key={i} className="flex items-end gap-2">
-                <div className="flex-1 space-y-1">
-                  <label className="text-xs font-medium">גודל</label>
-                  <Input
-                    value={s.value}
-                    onChange={(e) =>
-                      setSizes((rows) =>
-                        rows.map((r, j) =>
-                          j === i ? { ...r, value: e.target.value } : r
-                        )
-                      )
-                    }
-                    placeholder="10.15"
-                  />
-                </div>
-                <div className="w-28 space-y-1">
-                  <label className="text-xs font-medium">מחיר מכירה</label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={s.price}
-                    onChange={(e) =>
-                      setSizes((rows) =>
-                        rows.map((r, j) =>
-                          j === i ? { ...r, price: e.target.value } : r
-                        )
-                      )
-                    }
-                    placeholder="0.00"
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label="הסר גודל"
-                  onClick={() =>
-                    setSizes((rows) => rows.filter((_, j) => j !== i))
-                  }
-                >
-                  <Trash2 className="text-destructive size-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">צבעים</h2>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setColors((c) => [...c, { value: "", letter: "" }])
-                }
-              >
-                <Plus />
-                צבע
-              </Button>
-            </div>
-            {colors.map((c, i) => (
-              <div key={i} className="flex items-end gap-2">
-                <div className="flex-1 space-y-1">
-                  <label className="text-xs font-medium">צבע</label>
-                  <Input
-                    value={c.value}
-                    onChange={(e) =>
-                      setColors((rows) =>
-                        rows.map((r, j) =>
-                          j === i ? { ...r, value: e.target.value } : r
-                        )
-                      )
-                    }
-                    placeholder="אדום"
-                  />
-                </div>
-                <div className="w-20 space-y-1">
-                  <label className="text-xs font-medium">אות</label>
-                  <Input
-                    dir="ltr"
-                    maxLength={3}
-                    className="font-mono uppercase"
-                    value={c.letter}
-                    onChange={(e) =>
-                      setColors((rows) =>
-                        rows.map((r, j) =>
-                          j === i ? { ...r, letter: e.target.value } : r
-                        )
-                      )
-                    }
-                    placeholder="R"
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label="הסר צבע"
-                  onClick={() =>
-                    setColors((rows) => rows.filter((_, j) => j !== i))
-                  }
-                >
-                  <Trash2 className="text-destructive size-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* ── Per-variant supplier SKUs ── */}
       {sized && hasVariants && linkedSuppliers.length > 0 && (
