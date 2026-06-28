@@ -13,6 +13,7 @@ import { listProducts } from "@/lib/services/product.service";
 import { getSupplierSummaryMap } from "@/lib/services/product-supplier.service";
 import { getBomCostMap } from "@/lib/services/component.service";
 import { getSizedCostRangeMap } from "@/lib/services/supplier-variant-sku.service";
+import { getSizesMap } from "@/lib/services/variant.service";
 import { resolveProductCost } from "@/lib/cost";
 import {
   ProductsTable,
@@ -53,13 +54,17 @@ export async function ProductsView({
   >();
   let bomCosts = new Map<string, number | null>();
   let costRanges = new Map<string, { min: number; max: number }>();
+  let sizesMap = new Map<
+    string,
+    { value: string; price: number | null; costPrice: number | null }[]
+  >();
   let loadError: string | null = null;
 
   if (supabaseConfigured) {
     try {
       products = await listProducts(type);
       const ids = products.map((p) => p.id);
-      [summaries, bomCosts, costRanges] = await Promise.all([
+      [summaries, bomCosts, costRanges, sizesMap] = await Promise.all([
         getSupplierSummaryMap(ids),
         type === "finished"
           ? getBomCostMap(ids)
@@ -67,6 +72,14 @@ export async function ProductsView({
         type === "finished"
           ? getSizedCostRangeMap(ids)
           : Promise.resolve(new Map<string, { min: number; max: number }>()),
+        type === "finished"
+          ? getSizesMap(ids)
+          : Promise.resolve(
+              new Map<
+                string,
+                { value: string; price: number | null; costPrice: number | null }[]
+              >()
+            ),
       ]);
     } catch (err) {
       loadError = err instanceof Error ? err.message : "שגיאה בטעינה";
@@ -144,6 +157,11 @@ export async function ProductsView({
                   : formatPrice(product.costPrice),
               supplierLabel: summary?.supplierLabel ?? "—",
               costDisplay,
+              sizes: (sizesMap.get(product.id) ?? []).map((s) => ({
+                value: s.value,
+                price: formatPrice(s.price),
+                cost: formatPrice(s.costPrice),
+              })),
             };
           })}
         />

@@ -49,6 +49,38 @@ export async function listSizes(productId: string): Promise<SizeOption[]> {
   }));
 }
 
+/** Sizes for many products at once (for list views). */
+export async function getSizesMap(
+  productIds: string[]
+): Promise<Map<string, SizeOption[]>> {
+  const result = new Map<string, SizeOption[]>();
+  if (productIds.length === 0) return result;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("product_sizes")
+    .select("id, product_id, value, price, cost_price")
+    .in("product_id", productIds)
+    .order("value");
+  if (error) throw new Error(error.message);
+  for (const r of (data as {
+    id: string;
+    product_id: string;
+    value: string;
+    price: number | string | null;
+    cost_price: number | string | null;
+  }[]) ?? []) {
+    const arr = result.get(r.product_id) ?? [];
+    arr.push({
+      id: r.id,
+      value: r.value,
+      price: num(r.price),
+      costPrice: num(r.cost_price),
+    });
+    result.set(r.product_id, arr);
+  }
+  return result;
+}
+
 export async function listColors(productId: string): Promise<ColorOption[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
