@@ -3,13 +3,10 @@ import "server-only";
 import { icountRequest } from "./client";
 
 /**
- * Focused diagnostic: `inventory/add_item` started returning
- * `item_creation_failed` after we added barcode + VAT-inclusive price fields.
- * This adds those fields one at a time (each with a UNIQUE sku so a previous
- * success doesn't mask the next with `duplicate_sku`) to pinpoint the culprit.
- *
- * Whichever line is the FIRST to fail identifies the offending field. Created
- * test items are named "PROBE — מחק" so they're easy to delete in iCount.
+ * Diagnostic: `add_item` returns `item_creation_failed`, yet a previously
+ * "failed" SKU later reported `duplicate_sku` — suggesting the item IS created
+ * despite the error. This dumps the FULL add_item response and then checks
+ * get_items to confirm whether the item actually landed in iCount.
  */
 
 export interface ProbeLine {
@@ -17,80 +14,51 @@ export interface ProbeLine {
   result: string;
 }
 
-const VARIANTS: { label: string; body: Record<string, unknown> }[] = [
-  {
-    label: "1. בסיס {sku,description,unitprice}",
-    body: { sku: "PROBE_A", description: "PROBE — מחק", unitprice: 50 },
-  },
-  {
-    label: "2. + unitprice_incvat",
-    body: { sku: "PROBE_B", description: "PROBE — מחק", unitprice_incvat: 50 },
-  },
-  {
-    label: "3. + unitprice_incvat_entered",
-    body: {
-      sku: "PROBE_C",
-      description: "PROBE — מחק",
-      unitprice_incvat: 50,
-      unitprice_incvat_entered: 1,
-    },
-  },
-  {
-    label: "4. + cost_amount",
-    body: {
-      sku: "PROBE_D",
-      description: "PROBE — מחק",
-      unitprice_incvat: 50,
-      cost_amount: 7,
-    },
-  },
-  {
-    label: "5. + barcode (פשוט)",
-    body: {
-      sku: "PROBE_E",
-      barcode: "PROBE_E",
-      description: "PROBE — מחק",
-      unitprice_incvat: 50,
-    },
-  },
-  {
-    label: "6. מק\"ט עם מקף+נקודה {sku:PROBE-9.9}",
-    body: { sku: "PROBE-9.9", description: "PROBE — מחק", unitprice_incvat: 50 },
-  },
-  {
-    label: "7. ברקוד עם מקף+נקודה {barcode:PROBE-9.9}",
-    body: {
-      sku: "PROBE_G",
-      barcode: "PROBE-9.9",
-      description: "PROBE — מחק",
-      unitprice_incvat: 50,
-    },
-  },
-  {
-    label: "8. הכל יחד (כמו בסנכרון האמיתי)",
-    body: {
-      sku: "PROBE-1.1",
-      barcode: "PROBE-1.1",
-      description: "PROBE — מחק",
-      unitprice_incvat: 50,
-      unitprice_incvat_entered: 1,
-      cost_amount: 7,
-    },
-  },
-];
+const TEST_SKU = "PROBE_X1";
 
 export async function probeIcountMethods(): Promise<ProbeLine[]> {
   const lines: ProbeLine[] = [];
-  for (const v of VARIANTS) {
-    try {
-      await icountRequest("inventory/add_item", v.body);
-      lines.push({ method: v.label, result: "✅ הצליח" });
-    } catch (err) {
-      lines.push({
-        method: v.label,
-        result: err instanceof Error ? err.message : "שגיאה",
-      });
-    }
+
+  // 1. Full raw response of an add_item call (catch HTTP-level throw too).
+  try {
+    const json = await icountRequest("inventory/add_item", {
+      sku: TEST_SKU,
+      description: "PROBE — מחק",
+      unitprice: 50,
+    });
+    lines.push({
+      method: "add_item תשובה מלאה",
+      result: JSON.stringify(json),
+    });
+  } catch (err) {
+    lines.push({
+      method: "add_item נזרקה שגיאה",
+      result: err instanceof Error ? err.message : "שגיאה",
+    });
   }
+
+  // 2. Does the SKU now exist in iCount despite the error above?
+  try {
+    const json = await icountRequest("inventory/get_items");
+    const raw = (json.items ?? json.data ?? json.list ?? json) as unknown;
+    const arr: Record<string, unknown>[] = Array.isArray(raw)
+      ? (raw as Record<string, unknown>[])
+      : (Object.values(raw as object).filter(
+          (v) => v && typeof v === "object"
+        ) as Record<string, unknown>[]);
+    const found = arr.find((it) => String(it.sku ?? "") === TEST_SKU);
+    lines.push({
+      method: `נמצא ${TEST_SKU} ב-iCount?`,
+      result: found
+        ? "✅ כן — הפריט נוצר! " + JSON.stringify(found).slice(0, 200)
+        : `לא נמצא (מתוך ${arr.length} פריטים)`,
+    });
+  } catch (err) {
+    lines.push({
+      method: "get_items נכשל",
+      result: err instanceof Error ? err.message : "שגיאה",
+    });
+  }
+
   return lines;
 }
