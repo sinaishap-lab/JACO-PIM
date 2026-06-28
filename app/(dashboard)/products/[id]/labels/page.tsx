@@ -8,6 +8,7 @@ import {
 } from "@/components/products/label-print";
 import { getProduct } from "@/lib/services/product.service";
 import { listSizes, listColors } from "@/lib/services/variant.service";
+import { listProductImages } from "@/lib/services/product-image.service";
 import { generateVariantSku } from "@/lib/sku";
 
 export const dynamic = "force-dynamic";
@@ -22,10 +23,13 @@ export default async function ProductLabelsPage({
   if (!product) notFound();
 
   const isFinished = product.type === "finished";
-  const [sizes, colors] = await Promise.all([
+  const [sizes, colors, images] = await Promise.all([
     isFinished ? listSizes(id) : Promise.resolve([]),
     isFinished ? listColors(id) : Promise.resolve([]),
+    listProductImages(id),
   ]);
+  const primaryImage =
+    images.find((im) => im.isPrimary)?.url ?? images[0]?.url ?? null;
 
   const base = product.sku ?? "";
   const variants: LabelVariant[] = [];
@@ -70,7 +74,14 @@ export default async function ProductLabelsPage({
         </p>
       </header>
 
-      <LabelPrint variants={variants} />
+      <LabelPrint
+        variants={variants}
+        product={{
+          name: product.name,
+          sku: base,
+          imageUrl: primaryImage,
+        }}
+      />
     </div>
   );
 }

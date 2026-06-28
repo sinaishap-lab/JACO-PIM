@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ProductImagesField } from "@/components/products/product-images-field";
 import { cn } from "@/lib/utils";
 import { usageUnitOptions } from "@/lib/schemas/product";
 import type { ProductFormState } from "@/app/(dashboard)/products/actions";
@@ -52,6 +53,7 @@ export type ProductFormInitial = {
   variantSku: Record<string, string>;
   variantCost: Record<string, string>;
   fieldValues: Record<string, unknown>;
+  images?: { url: string; isPrimary: boolean }[];
 };
 
 function vKey(supplierId: string, size: string | null, color: string | null) {
@@ -395,6 +397,11 @@ export function ProductCreateForm({
             rows={3}
             defaultValue={product?.description ?? ""}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label>תמונות מוצר</Label>
+          <ProductImagesField defaultImages={initial?.images ?? []} />
         </div>
 
         {tree.length > 0 && (

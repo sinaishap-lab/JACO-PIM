@@ -31,6 +31,7 @@ import {
   clearVariants,
 } from "@/lib/services/variant.service";
 import { regenerateProductSku } from "@/lib/services/sku.service";
+import { setProductImages } from "@/lib/services/product-image.service";
 import {
   setSupplierVariantSkus,
   clearSupplierVariantSkus,
@@ -250,6 +251,12 @@ async function persistProductCollections(
   for (const [sid, entries] of bySupplier) {
     await setSupplierVariantSkus(productId, sid, entries);
   }
+
+  // Images (gallery + primary). setProductImages replaces the whole set.
+  const images = parseJsonArray(formData.get("images"))
+    .map((im) => ({ url: strOrNull(im.url), isPrimary: Boolean(im.isPrimary) }))
+    .filter((im): im is { url: string; isPrimary: boolean } => Boolean(im.url));
+  await setProductImages(productId, images);
 
   // Fields (dynamic attribute values)
   await setProductAttributeValues(productId, await readAttributeValues(formData));

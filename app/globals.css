@@ -198,22 +198,60 @@
   font-weight: 800;
   font-size: 13pt;
 }
+.label-logo {
+  height: 5mm;
+}
+
+/* A5 warehouse box label — one per page. */
+.box-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 148mm;
+  height: 210mm;
+  padding: 12mm;
+  gap: 8mm;
+  text-align: center;
+  break-inside: avoid;
+  page-break-after: always;
+}
+.box-label img.box-photo {
+  max-width: 100%;
+  max-height: 95mm;
+  object-fit: contain;
+}
+.box-name {
+  font-weight: 800;
+  font-size: 34pt;
+  line-height: 1.1;
+}
+.box-sku {
+  font-family: var(--font-mono, monospace);
+  font-size: 18pt;
+  letter-spacing: 0.06em;
+}
 
 @media print {
-  /* Print only the label sheet — hide app chrome and controls. */
+  /* Print only the active label sheet — hide app chrome and controls. */
   body * {
     visibility: hidden;
   }
-  .label-sheet,
-  .label-sheet * {
+  .print-area,
+  .print-area * {
     visibility: visible;
   }
-  .label-sheet {
+  .print-area {
     position: absolute;
     inset: 0;
     gap: 0;
   }
   .label {
     border: none;
+  }
+  .label,
+  .box-label {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }

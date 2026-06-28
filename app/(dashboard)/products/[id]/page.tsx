@@ -19,6 +19,7 @@ import { listSupplierVariantSkus } from "@/lib/services/supplier-variant-sku.ser
 import { listSuppliers } from "@/lib/services/supplier.service";
 import { listClassificationTree } from "@/lib/services/classification.service";
 import { listSizes, listColors } from "@/lib/services/variant.service";
+import { listProductImages } from "@/lib/services/product-image.service";
 import { updateProductAction } from "../actions";
 
 const str = (v: number | null | undefined) => (v != null ? String(v) : "");
@@ -48,6 +49,7 @@ export default async function EditProductPage({
     sizes,
     colors,
     variantSkuMap,
+    productImages,
   ] = await Promise.all([
     listAttributes(),
     getProductAttributeValues(id),
@@ -59,6 +61,7 @@ export default async function EditProductPage({
     isFinished ? listSizes(id) : Promise.resolve([]),
     isFinished ? listColors(id) : Promise.resolve([]),
     listSupplierVariantSkus(id),
+    listProductImages(id),
   ]);
 
   // Flatten per-variant SKUs/costs into the form's `supplierId::size::color` keys.
@@ -94,6 +97,7 @@ export default async function EditProductPage({
     variantSku,
     variantCost,
     fieldValues: values,
+    images: productImages.map((im) => ({ url: im.url, isPrimary: im.isPrimary })),
   };
 
   const action = updateProductAction.bind(null, id);
