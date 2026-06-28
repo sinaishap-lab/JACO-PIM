@@ -74,7 +74,10 @@ export async function icountRequest(
     throw new Error(`iCount: תשובה לא תקינה (${res.status})`);
   }
 
-  if (!res.ok || json.status === false) {
+  // iCount's PHP API may signal failure as false, 0 or "0".
+  const failed =
+    json.status === false || json.status === 0 || json.status === "0";
+  if (!res.ok || failed) {
     const reason =
       (typeof json.reason === "string" && json.reason) ||
       (typeof json.error_description === "string" && json.error_description) ||

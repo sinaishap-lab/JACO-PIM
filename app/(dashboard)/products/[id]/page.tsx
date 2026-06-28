@@ -51,17 +51,17 @@ export default async function EditProductPage({
     variantSkuMap,
     productImages,
   ] = await Promise.all([
-    listAttributes(),
-    getProductAttributeValues(id),
-    isFinished ? listComponents(id) : Promise.resolve([]),
-    isFinished ? listRawMaterials() : Promise.resolve([]),
-    listProductSuppliers(id),
-    listSuppliers(),
-    listClassificationTree(),
-    isFinished ? listSizes(id) : Promise.resolve([]),
-    isFinished ? listColors(id) : Promise.resolve([]),
-    listSupplierVariantSkus(id),
-    listProductImages(id),
+    listAttributes().catch(() => []),
+    getProductAttributeValues(id).catch(() => ({})),
+    isFinished ? listComponents(id).catch(() => []) : Promise.resolve([]),
+    isFinished ? listRawMaterials().catch(() => []) : Promise.resolve([]),
+    listProductSuppliers(id).catch(() => []),
+    listSuppliers().catch(() => []),
+    listClassificationTree().catch(() => []),
+    isFinished ? listSizes(id).catch(() => []) : Promise.resolve([]),
+    isFinished ? listColors(id).catch(() => []) : Promise.resolve([]),
+    listSupplierVariantSkus(id).catch(() => new Map()),
+    listProductImages(id).catch(() => []),
   ]);
 
   // Flatten per-variant SKUs/costs into the form's `supplierId::size::color` keys.

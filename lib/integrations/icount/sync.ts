@@ -61,7 +61,7 @@ async function buildCatalogItems(): Promise<CatalogItem[]> {
           sku,
           name: parts.join(" "),
           price: s?.price ?? p.salePrice,
-          cost: p.costPrice,
+          cost: s?.costPrice ?? p.costPrice,
         });
       }
     }

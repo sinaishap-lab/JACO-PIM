@@ -1,9 +1,7 @@
 import {
-  LayoutDashboard,
   Package,
   Boxes,
   FolderTree,
-  Images,
   Truck,
   Settings,
   type LucideIcon,
@@ -17,15 +15,13 @@ export type NavItem = {
 
 /** Shared navigation items for the desktop sidebar and the mobile nav. */
 export const navItems: NavItem[] = [
-  { href: "/", label: "סקירה", icon: LayoutDashboard },
   { href: "/products", label: "מוצרים", icon: Package },
   { href: "/materials", label: "חומרי גלם", icon: Boxes },
   { href: "/suppliers", label: "ספקים", icon: Truck },
   { href: "/classification", label: "סיווג", icon: FolderTree },
-  { href: "/media", label: "מדיה", icon: Images },
   { href: "/settings", label: "הגדרות", icon: Settings },
 ];
 
 export function isActive(pathname: string, href: string): boolean {
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  return pathname.startsWith(href);
 }

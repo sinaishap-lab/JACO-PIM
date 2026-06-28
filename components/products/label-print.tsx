@@ -37,7 +37,7 @@ function Barcode({
   module?: number;
   height?: number;
 }) {
-  const { rects, modules } = useMemo(() => code128(value), [value]);
+  const { rects, modules } = useMemo(() => code128(value || " "), [value]);
   return (
     <svg
       width={modules * module}
@@ -170,7 +170,9 @@ function BoxLabel({ product }: { product: LabelProduct }) {
             type="number"
             min={0}
             value={copies}
-            onChange={(e) => setCopies(parseInt(e.target.value, 10))}
+            onChange={(e) =>
+              setCopies(Math.max(0, parseInt(e.target.value, 10) || 0))
+            }
             className="w-24"
             dir="ltr"
           />

@@ -16,7 +16,9 @@ export function MobileNav() {
   return (
     <div className="bg-sidebar text-sidebar-foreground border-b md:hidden print:!hidden">
       <div className="flex h-14 items-center justify-between px-4">
-        <JacoLogo />
+        <Link href="/products" aria-label="דף הבית" onClick={() => setOpen(false)}>
+          <JacoLogo />
+        </Link>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}

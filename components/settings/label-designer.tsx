@@ -188,13 +188,13 @@ export function LabelDesigner({ config }: { config: LabelConfig }) {
                         onPointerDown={(ev) => onPointerDown(ev, e, "resize")}
                         style={{
                           position: "absolute",
-                          left: -4,
+                          right: -4,
                           bottom: -4,
                           width: 10,
                           height: 10,
                           background: "var(--brand-pink)",
                           borderRadius: 2,
-                          cursor: "nesw-resize",
+                          cursor: "nwse-resize",
                         }}
                       />
                     )}

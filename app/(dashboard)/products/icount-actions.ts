@@ -7,13 +7,13 @@ export type IcountSyncState = { ok?: boolean; message?: string };
 
 /** Pushes the product catalog to iCount and returns a short summary. */
 export async function syncIcountAction(): Promise<IcountSyncState> {
-  if (!(await isIcountConfigured())) {
-    return {
-      ok: false,
-      message: "iCount לא מוגדר — הזינו את הפרטים במסך ההגדרות",
-    };
-  }
   try {
+    if (!(await isIcountConfigured())) {
+      return {
+        ok: false,
+        message: "iCount לא מוגדר — הזינו את הפרטים במסך ההגדרות",
+      };
+    }
     const r = await syncProductsToIcount();
     const skipped = r.skipped ? `, ${r.skipped} דולגו` : "";
     const errs = r.errors.length

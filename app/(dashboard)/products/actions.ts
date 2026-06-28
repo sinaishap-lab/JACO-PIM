@@ -175,6 +175,7 @@ export async function createProductAction(
     return { error: err instanceof Error ? err.message : "שגיאה ביצירת המוצר" };
   }
   revalidatePath("/products");
+  revalidatePath("/materials");
   redirect(`/products/${productId}`);
 }
 
@@ -309,6 +310,7 @@ export async function deleteProductsAction(ids: string[]): Promise<void> {
   }
   revalidatePath("/products");
   revalidatePath("/materials");
+  revalidatePath("/suppliers", "layout");
 }
 
 // ── Bill of materials (recipe) ──────────────────────────────────────────────
