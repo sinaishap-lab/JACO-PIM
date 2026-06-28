@@ -106,7 +106,8 @@ function parse(formData: FormData) {
   return productInputSchema.safeParse({
     name: formData.get("name"),
     description: formData.get("description"),
-    status: formData.get("status"),
+    // Status is no longer chosen in the form — a saved product is active.
+    status: formData.get("status") ?? "published",
     type: formData.get("type"),
     costPrice: toPrice(formData.get("costPrice")),
     salePrice: toPrice(formData.get("salePrice")),

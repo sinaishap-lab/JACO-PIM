@@ -8,16 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { productTypeLabels, usageUnitOptions } from "@/lib/schemas/product";
+import { usageUnitOptions } from "@/lib/schemas/product";
 import type { ProductFormState } from "@/app/(dashboard)/products/actions";
 import type { Product, ProductType } from "@/lib/types";
 import type { DepartmentNode } from "@/lib/services/classification.service";
-
-const statusOptions = [
-  { value: "draft", label: "טיוטה" },
-  { value: "published", label: "פורסם" },
-  { value: "archived", label: "בארכיון" },
-];
 
 const selectClass = cn(
   "border-input dark:bg-input/30 h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs outline-none",
@@ -44,9 +38,9 @@ export function ProductForm({
     ProductFormState,
     FormData
   >(action, {});
-  const [type, setType] = useState<ProductType>(
-    product?.type ?? initialType ?? "finished"
-  );
+  // Product type is fixed by the route it was created from (product vs raw
+  // material) — no longer chosen in the form.
+  const type: ProductType = product?.type ?? initialType ?? "finished";
   const [deptId, setDeptId] = useState(product?.departmentId ?? "");
   const [subId, setSubId] = useState(product?.subDepartmentId ?? "");
   const [modelId, setModelId] = useState(product?.modelId ?? "");
@@ -82,27 +76,7 @@ export function ProductForm({
         </div>
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="type">סוג מוצר</Label>
-        <select
-          id="type"
-          name="type"
-          value={type}
-          onChange={(e) => setType(e.target.value as ProductType)}
-          className={selectClass}
-        >
-          {(Object.keys(productTypeLabels) as ProductType[]).map((t) => (
-            <option key={t} value={t}>
-              {productTypeLabels[t]}
-            </option>
-          ))}
-        </select>
-        <p className="text-muted-foreground text-xs">
-          {type === "finished"
-            ? "מוצר שנמכר ללקוח. העלות תחושב מחומרי הגלם שלו."
-            : "חומר גלם שלא נמכר כמו שהוא, עם מחיר עלות."}
-        </p>
-      </div>
+      <input type="hidden" name="type" value={type} />
 
       <div className="space-y-2">
         <Label>מק&quot;ט</Label>
@@ -239,22 +213,6 @@ export function ProductForm({
         {state.fieldErrors?.description && (
           <p className={errorText}>{state.fieldErrors.description[0]}</p>
         )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="status">סטטוס</Label>
-        <select
-          id="status"
-          name="status"
-          defaultValue={product?.status ?? "draft"}
-          className={selectClass}
-        >
-          {statusOptions.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
       </div>
 
       {tree.length > 0 && (
