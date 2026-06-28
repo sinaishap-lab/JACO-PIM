@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { Logo } from "./Logo";
 
@@ -100,9 +101,9 @@ export function SidebarItem({
     </>
   );
   return href ? (
-    <a href={href} className={cls} aria-current={active ? "page" : undefined}>
+    <Link href={href} className={cls} aria-current={active ? "page" : undefined}>
       {inner}
-    </a>
+    </Link>
   ) : (
     <button type="button" onClick={onClick} className={cn(cls, "w-full text-start")}>
       {inner}
