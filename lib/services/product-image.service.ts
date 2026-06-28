@@ -19,6 +19,19 @@ interface Row {
   sort_order: number;
 }
 
+/** True when the error is "product_images table doesn't exist yet" (migration
+ * 0019 not run). We degrade gracefully instead of crashing the page. */
+function isMissingTable(error: { code?: string; message?: string } | null) {
+  if (!error) return false;
+  return (
+    error.code === "42P01" ||
+    error.code === "PGRST205" ||
+    /schema cache|find the table .*product_images|relation .*product_images/i.test(
+      error.message ?? ""
+    )
+  );
+}
+
 export async function listProductImages(
   productId: string
 ): Promise<ProductImage[]> {
@@ -29,7 +42,10 @@ export async function listProductImages(
     .eq("product_id", productId)
     .order("is_primary", { ascending: false })
     .order("sort_order");
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (isMissingTable(error)) return [];
+    throw new Error(error.message);
+  }
   return (data as Row[]).map((r) => ({
     id: r.id,
     url: r.url,
@@ -50,7 +66,10 @@ export async function getPrimaryImageMap(
     .in("product_id", productIds)
     .order("is_primary", { ascending: false })
     .order("sort_order");
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (isMissingTable(error)) return map;
+    throw new Error(error.message);
+  }
   for (const r of (data as (Row & { product_id: string })[]) ?? []) {
     // First row per product wins (primary sorts first).
     if (!map.has(r.product_id)) map.set(r.product_id, r.url);
@@ -68,7 +87,11 @@ export async function setProductImages(
     .from("product_images")
     .delete()
     .eq("product_id", productId);
-  if (delErr) throw new Error(delErr.message);
+  if (delErr) {
+    // Migration 0019 not run yet — skip silently so saving still works.
+    if (isMissingTable(delErr)) return;
+    throw new Error(delErr.message);
+  }
 
   if (images.length === 0) return;
   // Ensure exactly one primary (default to the first image).
