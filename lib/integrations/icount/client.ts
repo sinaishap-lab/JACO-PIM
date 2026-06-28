@@ -1,33 +1,32 @@
 import "server-only";
 
+import { getSettings } from "@/lib/services/settings.service";
+
 /**
  * Thin client for the iCount v3 REST API (https://api.icount.co.il/api/v3.php).
- * Credentials come from the environment — never hard-code them:
- *   ICOUNT_CID   – company id
- *   ICOUNT_USER  – API user
- *   ICOUNT_PASS  – API password
- * (Override the base URL with ICOUNT_API_URL if needed.)
+ * Credentials are read from the in-app settings (entered on the Settings page),
+ * falling back to environment variables (ICOUNT_CID/USER/PASS) if set.
  */
 
 const BASE_URL =
   process.env.ICOUNT_API_URL ?? "https://api.icount.co.il/api/v3.php";
 
-function credentials() {
-  const cid = process.env.ICOUNT_CID;
-  const user = process.env.ICOUNT_USER;
-  const pass = process.env.ICOUNT_PASS;
-  if (!cid || !user || !pass) {
-    throw new Error(
-      "חסרים פרטי iCount ב-.env.local (ICOUNT_CID, ICOUNT_USER, ICOUNT_PASS)"
-    );
-  }
+/** Reads iCount credentials from app settings, falling back to env vars. */
+export async function getIcountCredentials(): Promise<{
+  cid: string;
+  user: string;
+  pass: string;
+} | null> {
+  const s = await getSettings(["icount_cid", "icount_user", "icount_pass"]);
+  const cid = s.icount_cid || process.env.ICOUNT_CID || "";
+  const user = s.icount_user || process.env.ICOUNT_USER || "";
+  const pass = s.icount_pass || process.env.ICOUNT_PASS || "";
+  if (!cid || !user || !pass) return null;
   return { cid, user, pass };
 }
 
-export function isIcountConfigured(): boolean {
-  return Boolean(
-    process.env.ICOUNT_CID && process.env.ICOUNT_USER && process.env.ICOUNT_PASS
-  );
+export async function isIcountConfigured(): Promise<boolean> {
+  return (await getIcountCredentials()) != null;
 }
 
 /**
@@ -38,10 +37,14 @@ export async function icountRequest(
   path: string,
   body: Record<string, unknown> = {}
 ): Promise<Record<string, unknown>> {
+  const creds = await getIcountCredentials();
+  if (!creds) {
+    throw new Error("פרטי iCount לא הוגדרו — הזינו אותם במסך ההגדרות");
+  }
   const res = await fetch(`${BASE_URL}/${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...credentials(), ...body }),
+    body: JSON.stringify({ ...creds, ...body }),
     cache: "no-store",
   });
 

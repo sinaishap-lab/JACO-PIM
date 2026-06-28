@@ -5,6 +5,7 @@ import {
   FolderTree,
   Images,
   Truck,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 
@@ -22,6 +23,7 @@ export const navItems: NavItem[] = [
   { href: "/suppliers", label: "ספקים", icon: Truck },
   { href: "/classification", label: "סיווג", icon: FolderTree },
   { href: "/media", label: "מדיה", icon: Images },
+  { href: "/settings", label: "הגדרות", icon: Settings },
 ];
 
 export function isActive(pathname: string, href: string): boolean {

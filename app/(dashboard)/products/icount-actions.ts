@@ -7,10 +7,10 @@ export type IcountSyncState = { ok?: boolean; message?: string };
 
 /** Pushes the product catalog to iCount and returns a short summary. */
 export async function syncIcountAction(): Promise<IcountSyncState> {
-  if (!isIcountConfigured()) {
+  if (!(await isIcountConfigured())) {
     return {
       ok: false,
-      message: "iCount לא מוגדר — הוסיפו ICOUNT_CID / ICOUNT_USER / ICOUNT_PASS ל-.env.local",
+      message: "iCount לא מוגדר — הזינו את הפרטים במסך ההגדרות",
     };
   }
   try {
