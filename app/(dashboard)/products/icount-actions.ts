@@ -2,6 +2,7 @@
 
 import { isIcountConfigured } from "@/lib/integrations/icount/client";
 import { syncProductsToIcount } from "@/lib/integrations/icount/sync";
+import { probeIcountMethods } from "@/lib/integrations/icount/probe";
 
 export type IcountSyncState = { ok?: boolean; message?: string };
 
@@ -27,6 +28,28 @@ export async function syncIcountAction(): Promise<IcountSyncState> {
     return {
       ok: false,
       message: err instanceof Error ? err.message : "שגיאה בסנכרון ל-iCount",
+    };
+  }
+}
+
+/** Temporary diagnostic: isolates which add_item field breaks item creation. */
+export async function probeIcountAction(): Promise<IcountSyncState> {
+  if (!(await isIcountConfigured())) {
+    return {
+      ok: false,
+      message: "iCount לא מוגדר — הזינו את הפרטים במסך ההגדרות",
+    };
+  }
+  try {
+    const lines = await probeIcountMethods();
+    return {
+      ok: true,
+      message: lines.map((l) => `${l.method} → ${l.result}`).join("\n"),
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "שגיאה באבחון iCount",
     };
   }
 }
