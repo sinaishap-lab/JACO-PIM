@@ -2,6 +2,7 @@
 
 import { isIcountConfigured } from "@/lib/integrations/icount/client";
 import { syncProductsToIcount } from "@/lib/integrations/icount/sync";
+import { probeIcountMethods } from "@/lib/integrations/icount/probe";
 
 export type IcountSyncState = { ok?: boolean; message?: string };
 
@@ -26,6 +27,30 @@ export async function syncIcountAction(): Promise<IcountSyncState> {
     return {
       ok: false,
       message: err instanceof Error ? err.message : "שגיאה בסנכרון ל-iCount",
+    };
+  }
+}
+
+/**
+ * Diagnostic: probes candidate iCount inventory endpoints and returns a
+ * readable report of which method names are valid (used to find the correct
+ * create/list endpoint, since they currently return `bad_method`).
+ */
+export async function probeIcountAction(): Promise<IcountSyncState> {
+  if (!(await isIcountConfigured())) {
+    return {
+      ok: false,
+      message: "iCount לא מוגדר — הזינו את הפרטים במסך ההגדרות",
+    };
+  }
+  try {
+    const lines = await probeIcountMethods();
+    const report = lines.map((l) => `${l.method} → ${l.result}`).join("\n");
+    return { ok: true, message: report };
+  } catch (err) {
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "שגיאה באבחון iCount",
     };
   }
 }
