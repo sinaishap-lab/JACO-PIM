@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Fragment, useState, useTransition } from "react";
-import { ChevronDown, Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, Pencil, Printer, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -164,6 +164,16 @@ export function ProductsTable({
                     </TableCell>
                     <TableCell className="text-end">
                       <div className="flex items-center justify-end gap-1">
+                        <Button
+                          asChild
+                          variant="ghost"
+                          size="icon"
+                          aria-label="הדפסת מדבקות"
+                        >
+                          <Link href={`/products/${p.id}/labels`}>
+                            <Printer className="size-4" />
+                          </Link>
+                        </Button>
                         <Button asChild variant="ghost" size="icon" aria-label="עריכה">
                           <Link href={`/products/${p.id}`}>
                             <Pencil className="size-4" />
