@@ -114,6 +114,32 @@ export async function removeSize(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+/** Colors for many products at once (for list / sync). */
+export async function getColorsMap(
+  productIds: string[]
+): Promise<Map<string, ColorOption[]>> {
+  const result = new Map<string, ColorOption[]>();
+  if (productIds.length === 0) return result;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("product_colors")
+    .select("id, product_id, value, letter")
+    .in("product_id", productIds)
+    .order("value");
+  if (error) throw new Error(error.message);
+  for (const r of (data as {
+    id: string;
+    product_id: string;
+    value: string;
+    letter: string | null;
+  }[]) ?? []) {
+    const arr = result.get(r.product_id) ?? [];
+    arr.push({ id: r.id, value: r.value, letter: r.letter });
+    result.set(r.product_id, arr);
+  }
+  return result;
+}
+
 export async function addColor(
   productId: string,
   value: string,

@@ -19,6 +19,7 @@ import {
   ProductsTable,
   type ProductRow,
 } from "@/components/products/products-table";
+import { IcountSyncButton } from "@/components/products/icount-sync-button";
 import type { Product, ProductType } from "@/lib/types";
 
 const supabaseConfigured = Boolean(
@@ -93,12 +94,15 @@ export async function ProductsView({
           <h1 className="text-2xl font-black tracking-tight text-brand-gradient w-fit">{title}</h1>
           <p className="text-muted-foreground">{subtitle}</p>
         </div>
-        <Button asChild disabled={!supabaseConfigured}>
-          <Link href={newHref}>
-            <Plus />
-            {newLabel}
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {type === "finished" && <IcountSyncButton />}
+          <Button asChild disabled={!supabaseConfigured}>
+            <Link href={newHref}>
+              <Plus />
+              {newLabel}
+            </Link>
+          </Button>
+        </div>
       </header>
 
       {!supabaseConfigured ? (
