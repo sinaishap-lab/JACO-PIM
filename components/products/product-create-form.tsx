@@ -36,7 +36,8 @@ type SupplierRow = {
   supplierName: string;
   isPreferred: boolean;
 };
-type SizeRow = { value: string; price: string };
+type SizeRow = { value: string; price: string; costPrice: string };
+type PricingMode = "single" | "sized";
 type ColorRow = { value: string; letter: string };
 type ComponentRow = { componentId: string; quantity: string };
 
@@ -66,6 +67,8 @@ export function ProductCreateForm({
 
   const type: ProductType = initialType ?? "finished";
   const isFinished = type === "finished";
+  const [pricingMode, setPricingMode] = useState<PricingMode>("single");
+  const sized = isFinished && pricingMode === "sized";
 
   const [deptId, setDeptId] = useState("");
   const [subId, setSubId] = useState("");
@@ -149,12 +152,12 @@ export function ProductCreateForm({
       <input
         type="hidden"
         name="sizes"
-        value={JSON.stringify(sizes.filter((s) => s.value.trim()))}
+        value={JSON.stringify(sized ? sizes.filter((s) => s.value.trim()) : [])}
       />
       <input
         type="hidden"
         name="colors"
-        value={JSON.stringify(colors.filter((c) => c.value.trim()))}
+        value={JSON.stringify(sized ? colors.filter((c) => c.value.trim()) : [])}
       />
       <input
         type="hidden"
@@ -164,7 +167,7 @@ export function ProductCreateForm({
       <input
         type="hidden"
         name="variantSkus"
-        value={JSON.stringify(variantSkuEntries)}
+        value={JSON.stringify(sized ? variantSkuEntries : [])}
       />
 
       {/* ── Basic ── */}
@@ -184,43 +187,76 @@ export function ProductCreateForm({
         </div>
 
         {isFinished ? (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="salePrice">מחיר מכירה (₪)</Label>
-              <Input
-                id="salePrice"
-                name="salePrice"
-                type="number"
-                step="0.01"
-                min="0"
-                value={saleStr}
-                onChange={(e) => setSaleStr(e.target.value)}
-                placeholder="0.00"
-              />
+              <Label>תמחור</Label>
+              <div className="flex flex-wrap gap-4 text-sm">
+                <label className="flex items-center gap-2 font-medium">
+                  <input
+                    type="radio"
+                    checked={pricingMode === "single"}
+                    onChange={() => setPricingMode("single")}
+                    className="size-4"
+                  />
+                  מוצר יחיד (מחיר אחד)
+                </label>
+                <label className="flex items-center gap-2 font-medium">
+                  <input
+                    type="radio"
+                    checked={pricingMode === "sized"}
+                    onChange={() => setPricingMode("sized")}
+                    className="size-4"
+                  />
+                  מוצר עם גדלים (מחיר לכל גודל)
+                </label>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="costPrice">מחיר קנייה (עלות) (₪)</Label>
-              <Input
-                id="costPrice"
-                name="costPrice"
-                type="number"
-                step="0.01"
-                min="0"
-                value={costStr}
-                onChange={(e) => setCostStr(e.target.value)}
-                placeholder="0.00"
-              />
-            </div>
-            <div className="bg-muted/50 rounded-md px-3 py-2 text-sm sm:col-span-2">
-              רווח:{" "}
-              <span className="font-semibold">
-                {margin == null
-                  ? "—"
-                  : `₪${margin.toLocaleString("he-IL", {
-                      maximumFractionDigits: 2,
-                    })}`}
-              </span>
-            </div>
+
+            {pricingMode === "single" ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="salePrice">מחיר מכירה (₪)</Label>
+                  <Input
+                    id="salePrice"
+                    name="salePrice"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={saleStr}
+                    onChange={(e) => setSaleStr(e.target.value)}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="costPrice">מחיר קנייה (עלות) (₪)</Label>
+                  <Input
+                    id="costPrice"
+                    name="costPrice"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={costStr}
+                    onChange={(e) => setCostStr(e.target.value)}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="bg-muted/50 rounded-md px-3 py-2 text-sm sm:col-span-2">
+                  רווח:{" "}
+                  <span className="font-semibold">
+                    {margin == null
+                      ? "—"
+                      : `₪${margin.toLocaleString("he-IL", {
+                          maximumFractionDigits: 2,
+                        })}`}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-sm">
+                המחירים (קנייה ומכירה) נקבעים לכל גודל בקטע &quot;גדלים&quot;
+                למטה.
+              </p>
+            )}
           </div>
         ) : (
           <div className="grid gap-4 rounded-lg border p-4 sm:grid-cols-2">
@@ -476,18 +512,21 @@ export function ProductCreateForm({
         ))}
       </section>
 
-      {/* ── Variants (finished only) ── */}
-      {isFinished && (
+      {/* ── Variants (sized finished products) ── */}
+      {sized && (
         <section className="grid gap-6 border-t pt-6 lg:grid-cols-2">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">גדלים</h2>
+              <h2 className="text-lg font-semibold">גדלים (מחיר לכל גודל)</h2>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() =>
-                  setSizes((s) => [...s, { value: "", price: "" }])
+                  setSizes((s) => [
+                    ...s,
+                    { value: "", price: "", costPrice: "" },
+                  ])
                 }
               >
                 <Plus />
@@ -511,7 +550,24 @@ export function ProductCreateForm({
                   />
                 </div>
                 <div className="w-24 space-y-1">
-                  <label className="text-xs font-medium">מחיר</label>
+                  <label className="text-xs font-medium">קנייה</label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={s.costPrice}
+                    onChange={(e) =>
+                      setSizes((rows) =>
+                        rows.map((r, j) =>
+                          j === i ? { ...r, costPrice: e.target.value } : r
+                        )
+                      )
+                    }
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="w-24 space-y-1">
+                  <label className="text-xs font-medium">מכירה</label>
                   <Input
                     type="number"
                     step="0.01"
@@ -608,7 +664,7 @@ export function ProductCreateForm({
       )}
 
       {/* ── Per-variant supplier SKUs ── */}
-      {isFinished && hasVariants && linkedSuppliers.length > 0 && (
+      {sized && hasVariants && linkedSuppliers.length > 0 && (
         <section className="space-y-4 border-t pt-6">
           <h2 className="text-lg font-semibold">מק&quot;ט ספק לכל וריאנט</h2>
           {linkedSuppliers.map((sup) => (

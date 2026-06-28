@@ -211,10 +211,17 @@ export async function createProductAction(
       });
     }
 
-    // Sizes
+    // Sizes (each with its own sell + buy price)
     for (const sz of parseJsonArray(formData.get("sizes"))) {
       const value = strOrNull(sz.value);
-      if (value) await addSize(productId, value, numOrNull(sz.price));
+      if (value) {
+        await addSize(
+          productId,
+          value,
+          numOrNull(sz.price),
+          numOrNull(sz.costPrice)
+        );
+      }
     }
 
     // Colors
@@ -378,7 +385,12 @@ export async function addSizeAction(
 ): Promise<void> {
   const value = toText(formData.get("value"));
   if (!value) return;
-  await addSize(productId, value, toPrice(formData.get("price")));
+  await addSize(
+    productId,
+    value,
+    toPrice(formData.get("price")),
+    toPrice(formData.get("costPrice"))
+  );
   revalidatePath(`/products/${productId}`);
 }
 

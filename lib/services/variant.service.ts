@@ -9,7 +9,10 @@ import { createClient } from "@/lib/supabase/server";
 export interface SizeOption {
   id: string;
   value: string;
+  /** Sell price for this size. */
   price: number | null;
+  /** Buy/cost price for this size. */
+  costPrice: number | null;
 }
 export interface ColorOption {
   id: string;
@@ -27,13 +30,23 @@ export async function listSizes(productId: string): Promise<SizeOption[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("product_sizes")
-    .select("id, value, price")
+    .select("id, value, price, cost_price")
     .eq("product_id", productId)
     .order("value");
   if (error) throw new Error(error.message);
-  return (data as { id: string; value: string; price: number | string | null }[]).map(
-    (r) => ({ id: r.id, value: r.value, price: num(r.price) })
-  );
+  return (
+    data as {
+      id: string;
+      value: string;
+      price: number | string | null;
+      cost_price: number | string | null;
+    }[]
+  ).map((r) => ({
+    id: r.id,
+    value: r.value,
+    price: num(r.price),
+    costPrice: num(r.cost_price),
+  }));
 }
 
 export async function listColors(productId: string): Promise<ColorOption[]> {
@@ -50,13 +63,14 @@ export async function listColors(productId: string): Promise<ColorOption[]> {
 export async function addSize(
   productId: string,
   value: string,
-  price: number | null
+  price: number | null,
+  costPrice: number | null = null
 ): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase
     .from("product_sizes")
     .upsert(
-      { product_id: productId, value, price },
+      { product_id: productId, value, price, cost_price: costPrice },
       { onConflict: "product_id,value" }
     );
   if (error) throw new Error(error.message);

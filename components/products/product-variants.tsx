@@ -56,7 +56,8 @@ export function ProductVariants({
               <TableHeader>
                 <TableRow>
                   <TableHead>גודל</TableHead>
-                  <TableHead>מחיר</TableHead>
+                  <TableHead>קנייה</TableHead>
+                  <TableHead>מכירה</TableHead>
                   <TableHead />
                 </TableRow>
               </TableHeader>
@@ -64,6 +65,9 @@ export function ProductVariants({
                 {sizes.map((s) => (
                   <TableRow key={s.id}>
                     <TableCell className="font-medium">{s.value}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {ils(s.costPrice)}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {ils(s.price)}
                     </TableCell>
@@ -95,9 +99,22 @@ export function ProductVariants({
             </label>
             <Input id="size-value" name="value" placeholder="10.15" required />
           </div>
-          <div className="w-28 space-y-1">
+          <div className="w-24 space-y-1">
+            <label htmlFor="size-cost" className="text-xs font-medium">
+              קנייה (₪)
+            </label>
+            <Input
+              id="size-cost"
+              name="costPrice"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+            />
+          </div>
+          <div className="w-24 space-y-1">
             <label htmlFor="size-price" className="text-xs font-medium">
-              מחיר (₪)
+              מכירה (₪)
             </label>
             <Input
               id="size-price"
@@ -196,7 +213,8 @@ export function ProductVariants({
                   <TableHead>מק&quot;ט</TableHead>
                   <TableHead>גודל</TableHead>
                   <TableHead>צבע</TableHead>
-                  <TableHead>מחיר</TableHead>
+                  <TableHead>קנייה</TableHead>
+                  <TableHead>מכירה</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -213,6 +231,9 @@ export function ProductVariants({
                     </TableCell>
                     <TableCell>{v.size?.value ?? "—"}</TableCell>
                     <TableCell>{v.color?.value ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {ils(v.size?.costPrice ?? null)}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {ils(v.size?.price ?? salePrice)}
                     </TableCell>
