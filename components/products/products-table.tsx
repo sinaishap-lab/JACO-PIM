@@ -106,9 +106,9 @@ export function ProductsTable({
               </TableHead>
               <TableHead>מק&quot;ט</TableHead>
               <TableHead>שם</TableHead>
-              <TableHead>{priceHeader}</TableHead>
               <TableHead>ספק עיקרי</TableHead>
               <TableHead>עלות</TableHead>
+              <TableHead>{priceHeader}</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -153,14 +153,14 @@ export function ProductsTable({
                         </Link>
                       </span>
                     </TableCell>
-                    <TableCell className="text-muted-foreground whitespace-nowrap">
-                      {p.price}
-                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {p.supplierLabel}
                     </TableCell>
                     <TableCell className="text-muted-foreground whitespace-nowrap">
                       {p.costDisplay}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap">
+                      {p.price}
                     </TableCell>
                     <TableCell className="text-end">
                       <div className="flex items-center justify-end gap-1">
@@ -188,14 +188,14 @@ export function ProductsTable({
                         <div className="space-y-1">
                           <div className="text-muted-foreground grid grid-cols-3 gap-2 text-xs font-medium">
                             <span>גודל</span>
-                            <span>מחיר מכירה</span>
                             <span>עלות</span>
+                            <span>מחיר מכירה</span>
                           </div>
                           {p.sizes.map((s, i) => (
                             <div key={i} className="grid grid-cols-3 gap-2 text-sm">
                               <span>{s.value}</span>
-                              <span className="text-muted-foreground">{s.price}</span>
                               <span className="text-muted-foreground">{s.cost}</span>
+                              <span className="text-muted-foreground">{s.price}</span>
                             </div>
                           ))}
                         </div>
