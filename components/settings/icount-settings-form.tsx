@@ -15,10 +15,12 @@ export function IcountSettingsForm({
   cid,
   user,
   hasPass,
+  hasToken,
 }: {
   cid: string;
   user: string;
   hasPass: boolean;
+  hasToken: boolean;
 }) {
   const [state, formAction, pending] = useActionState<SettingsState, FormData>(
     saveIcountSettingsAction,
@@ -26,7 +28,7 @@ export function IcountSettingsForm({
   );
 
   return (
-    <form action={formAction} className="max-w-md space-y-4">
+    <form action={formAction} className="max-w-md space-y-5">
       {state.error && (
         <div className="border-destructive/50 text-destructive rounded-md border px-4 py-3 text-sm">
           {state.error}
@@ -34,25 +36,52 @@ export function IcountSettingsForm({
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="icount_cid">מזהה חברה (CID)</Label>
-        <Input id="icount_cid" name="icount_cid" defaultValue={cid} dir="ltr" />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="icount_user">שם משתמש API</Label>
-        <Input id="icount_user" name="icount_user" defaultValue={user} dir="ltr" />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="icount_pass">סיסמת API</Label>
+        <Label htmlFor="icount_token">טוקן גישה (Access Token)</Label>
         <Input
-          id="icount_pass"
-          name="icount_pass"
+          id="icount_token"
+          name="icount_token"
           type="password"
           dir="ltr"
-          placeholder={hasPass ? "•••••••• (שמורה — מלא רק כדי לשנות)" : ""}
+          placeholder={
+            hasToken ? "•••••••• (שמור — מלא רק כדי לשנות)" : "הדביקו כאן את טוקן הגישה"
+          }
         />
+        <p className="text-muted-foreground text-xs">
+          ב-iCount: הגדרות → אוטומציה → API Tokens → העתיקו את &quot;טוקן
+          גישה&quot;. זו הדרך המומלצת — אין צורך בשם משתמש/סיסמה.
+        </p>
       </div>
+
+      <details className="rounded-md border p-3">
+        <summary className="text-muted-foreground cursor-pointer text-sm">
+          או: התחברות עם מזהה חברה + משתמש + סיסמה
+        </summary>
+        <div className="mt-3 space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="icount_cid">מזהה חברה (CID)</Label>
+            <Input id="icount_cid" name="icount_cid" defaultValue={cid} dir="ltr" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="icount_user">שם משתמש API</Label>
+            <Input
+              id="icount_user"
+              name="icount_user"
+              defaultValue={user}
+              dir="ltr"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="icount_pass">סיסמת API</Label>
+            <Input
+              id="icount_pass"
+              name="icount_pass"
+              type="password"
+              dir="ltr"
+              placeholder={hasPass ? "•••••••• (שמורה — מלא רק כדי לשנות)" : ""}
+            />
+          </div>
+        </div>
+      </details>
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={pending}>

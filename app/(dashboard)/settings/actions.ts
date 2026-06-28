@@ -11,6 +11,7 @@ export async function saveIcountSettingsAction(
   _prev: SettingsState,
   formData: FormData
 ): Promise<SettingsState> {
+  const token = String(formData.get("icount_token") ?? "").trim();
   const cid = String(formData.get("icount_cid") ?? "").trim();
   const user = String(formData.get("icount_user") ?? "").trim();
   const pass = String(formData.get("icount_pass") ?? "").trim();
@@ -20,7 +21,8 @@ export async function saveIcountSettingsAction(
       icount_cid: cid || null,
       icount_user: user || null,
     };
-    // Only change the password when a new one is typed (blank = keep existing).
+    // Secrets update only when a new value is typed (blank = keep existing).
+    if (token) values.icount_token = token;
     if (pass) values.icount_pass = pass;
     await setSettings(values);
   } catch (err) {

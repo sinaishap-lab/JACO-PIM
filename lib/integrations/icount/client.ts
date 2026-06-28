@@ -11,22 +11,30 @@ import { getSettings } from "@/lib/services/settings.service";
 const BASE_URL =
   process.env.ICOUNT_API_URL ?? "https://api.icount.co.il/api/v3.php";
 
-/** Reads iCount credentials from app settings, falling back to env vars. */
-export async function getIcountCredentials(): Promise<{
-  cid: string;
-  user: string;
-  pass: string;
-} | null> {
-  const s = await getSettings(["icount_cid", "icount_user", "icount_pass"]);
+type IcountAuth =
+  | { token: string }
+  | { cid: string; user: string; pass: string };
+
+/** Reads iCount auth from app settings (token preferred), falling back to env. */
+export async function getIcountAuth(): Promise<IcountAuth | null> {
+  const s = await getSettings([
+    "icount_token",
+    "icount_cid",
+    "icount_user",
+    "icount_pass",
+  ]);
+  const token = s.icount_token || process.env.ICOUNT_TOKEN || "";
+  if (token) return { token };
+
   const cid = s.icount_cid || process.env.ICOUNT_CID || "";
   const user = s.icount_user || process.env.ICOUNT_USER || "";
   const pass = s.icount_pass || process.env.ICOUNT_PASS || "";
-  if (!cid || !user || !pass) return null;
-  return { cid, user, pass };
+  if (cid && user && pass) return { cid, user, pass };
+  return null;
 }
 
 export async function isIcountConfigured(): Promise<boolean> {
-  return (await getIcountCredentials()) != null;
+  return (await getIcountAuth()) != null;
 }
 
 /**
@@ -37,14 +45,25 @@ export async function icountRequest(
   path: string,
   body: Record<string, unknown> = {}
 ): Promise<Record<string, unknown>> {
-  const creds = await getIcountCredentials();
-  if (!creds) {
+  const auth = await getIcountAuth();
+  if (!auth) {
     throw new Error("פרטי iCount לא הוגדרו — הזינו אותם במסך ההגדרות");
   }
+
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  let payload: Record<string, unknown> = body;
+  if ("token" in auth) {
+    // Access-token auth (Bearer).
+    headers["Authorization"] = `Bearer ${auth.token}`;
+  } else {
+    // Company id + user + pass auth (in body).
+    payload = { ...auth, ...body };
+  }
+
   const res = await fetch(`${BASE_URL}/${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...creds, ...body }),
+    headers,
+    body: JSON.stringify(payload),
     cache: "no-store",
   });
 

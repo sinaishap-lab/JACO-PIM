@@ -7,11 +7,18 @@ export default async function SettingsPage() {
   let cid = "";
   let user = "";
   let hasPass = false;
+  let hasToken = false;
   try {
-    const s = await getSettings(["icount_cid", "icount_user", "icount_pass"]);
+    const s = await getSettings([
+      "icount_token",
+      "icount_cid",
+      "icount_user",
+      "icount_pass",
+    ]);
     cid = s.icount_cid ?? "";
     user = s.icount_user ?? "";
     hasPass = Boolean(s.icount_pass || process.env.ICOUNT_PASS);
+    hasToken = Boolean(s.icount_token || process.env.ICOUNT_TOKEN);
   } catch {
     // settings table may not exist yet — show empty form.
   }
@@ -33,7 +40,12 @@ export default async function SettingsPage() {
             &quot;סנכרון ל-iCount&quot; בעמוד המוצרים.
           </p>
         </div>
-        <IcountSettingsForm cid={cid} user={user} hasPass={hasPass} />
+        <IcountSettingsForm
+          cid={cid}
+          user={user}
+          hasPass={hasPass}
+          hasToken={hasToken}
+        />
       </section>
     </div>
   );
