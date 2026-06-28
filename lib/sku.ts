@@ -24,11 +24,12 @@ export function generateBaseSku(parts: {
   return segments.join("");
 }
 
-/** Variant SKU = base + size value + color letter. */
+/** Variant SKU = base + "-" + size value + color letter (hyphen before size). */
 export function generateVariantSku(
   base: string,
   sizeValue?: string | null,
   colorLetter?: string | null
 ): string {
-  return `${base}${sizeValue ?? ""}${colorLetter ?? ""}`;
+  const size = sizeValue ? `-${sizeValue}` : "";
+  return `${base}${size}${colorLetter ?? ""}`;
 }
