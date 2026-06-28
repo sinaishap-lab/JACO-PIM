@@ -54,6 +54,83 @@ export async function listSupplierVariantSkus(
 }
 
 /**
+ * Effective cost range per product across its variants, for list views. For
+ * each variant the effective cost is the preferred supplier's cost (if set),
+ * else the cheapest supplier's cost; the range spans the min/max of those.
+ */
+export async function getSizedCostRangeMap(
+  productIds: string[]
+): Promise<Map<string, { min: number; max: number }>> {
+  const result = new Map<string, { min: number; max: number }>();
+  if (productIds.length === 0) return result;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("supplier_variant_skus")
+    .select("product_id, supplier_id, size_value, color_value, cost_price")
+    .in("product_id", productIds);
+  if (error) throw new Error(error.message);
+
+  const rows = (
+    (data as {
+      product_id: string;
+      supplier_id: string;
+      size_value: string;
+      color_value: string;
+      cost_price: number | string | null;
+    }[]) ?? []
+  ).filter((r) => num(r.cost_price) != null);
+  if (rows.length === 0) return result;
+
+  const { data: ps } = await supabase
+    .from("product_suppliers")
+    .select("product_id, supplier_id, is_preferred")
+    .in("product_id", productIds);
+  const preferredByProduct = new Map<string, string>();
+  for (const p of (ps as {
+    product_id: string;
+    supplier_id: string;
+    is_preferred: boolean;
+  }[]) ?? []) {
+    if (p.is_preferred) preferredByProduct.set(p.product_id, p.supplier_id);
+  }
+
+  // product_id → variantKey → [{ supplierId, cost }]
+  const byProduct = new Map<
+    string,
+    Map<string, { supplierId: string; cost: number }[]>
+  >();
+  for (const r of rows) {
+    const cost = num(r.cost_price);
+    if (cost == null) continue;
+    const vk = `${r.size_value}::${r.color_value}`;
+    const variants = byProduct.get(r.product_id) ?? new Map();
+    const arr = variants.get(vk) ?? [];
+    arr.push({ supplierId: r.supplier_id, cost });
+    variants.set(vk, arr);
+    byProduct.set(r.product_id, variants);
+  }
+
+  for (const [productId, variants] of byProduct) {
+    const preferred = preferredByProduct.get(productId);
+    const effective: number[] = [];
+    for (const [, list] of variants) {
+      const pref = preferred
+        ? list.find((v) => v.supplierId === preferred)
+        : undefined;
+      effective.push(pref ? pref.cost : Math.min(...list.map((v) => v.cost)));
+    }
+    if (effective.length) {
+      result.set(productId, {
+        min: Math.min(...effective),
+        max: Math.max(...effective),
+      });
+    }
+  }
+  return result;
+}
+
+/**
  * Upserts (or deletes when empty) a set of per-variant rows for one supplier.
  * Each entry is { size, color, sku, cost } — size/color null for an absent axis.
  */

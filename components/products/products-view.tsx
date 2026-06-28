@@ -20,6 +20,7 @@ import {
 import { listProducts } from "@/lib/services/product.service";
 import { getSupplierSummaryMap } from "@/lib/services/product-supplier.service";
 import { getBomCostMap } from "@/lib/services/component.service";
+import { getSizedCostRangeMap } from "@/lib/services/supplier-variant-sku.service";
 import { resolveProductCost } from "@/lib/cost";
 import type { Product, ProductType } from "@/lib/types";
 
@@ -55,17 +56,21 @@ export async function ProductsView({
     { cost: number | null; supplierLabel: string | null }
   >();
   let bomCosts = new Map<string, number | null>();
+  let costRanges = new Map<string, { min: number; max: number }>();
   let loadError: string | null = null;
 
   if (supabaseConfigured) {
     try {
       products = await listProducts(type);
       const ids = products.map((p) => p.id);
-      [summaries, bomCosts] = await Promise.all([
+      [summaries, bomCosts, costRanges] = await Promise.all([
         getSupplierSummaryMap(ids),
         type === "finished"
           ? getBomCostMap(ids)
           : Promise.resolve(new Map<string, number | null>()),
+        type === "finished"
+          ? getSizedCostRangeMap(ids)
+          : Promise.resolve(new Map<string, { min: number; max: number }>()),
       ]);
     } catch (err) {
       loadError = err instanceof Error ? err.message : "שגיאה בטעינה";
@@ -131,12 +136,18 @@ export async function ProductsView({
             <TableBody>
               {products.map((product) => {
                 const summary = summaries.get(product.id);
+                const range = costRanges.get(product.id);
                 const resolvedCost = resolveProductCost({
                   type,
                   supplierCost: summary?.cost ?? null,
                   bomCost: bomCosts.get(product.id) ?? null,
                   manualCost: product.costPrice,
                 });
+                const costDisplay = range
+                  ? range.min === range.max
+                    ? formatPrice(range.min)
+                    : `${formatPrice(range.min)}–${formatPrice(range.max)}`
+                  : formatPrice(resolvedCost);
                 return (
                   <TableRow key={product.id}>
                     <TableCell className="font-mono text-xs">
@@ -159,7 +170,7 @@ export async function ProductsView({
                       {summary?.supplierLabel ?? "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground whitespace-nowrap">
-                      {formatPrice(resolvedCost)}
+                      {costDisplay}
                     </TableCell>
                   </TableRow>
                 );
