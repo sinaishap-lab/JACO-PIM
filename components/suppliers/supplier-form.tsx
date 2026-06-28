@@ -7,8 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import { paymentTermsLabels } from "@/lib/schemas/supplier";
 import type { SupplierFormState } from "@/app/(dashboard)/suppliers/actions";
-import type { Supplier } from "@/lib/types";
+import type { PaymentTerms, Supplier } from "@/lib/types";
+
+const selectClass = cn(
+  "border-input dark:bg-input/30 h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs outline-none",
+  "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+);
+
+const paymentTermsKeys = Object.keys(paymentTermsLabels) as PaymentTerms[];
 
 type Action = (
   state: SupplierFormState,
@@ -70,31 +79,78 @@ export function SupplierForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="contactName">איש קשר</Label>
+          <Label htmlFor="contactName">איש קשר *</Label>
           <Input
             id="contactName"
             name="contactName"
             defaultValue={supplier?.contactName ?? ""}
+            aria-invalid={Boolean(state.fieldErrors?.contactName)}
           />
+          {state.fieldErrors?.contactName && (
+            <p className={errorText}>{state.fieldErrors.contactName[0]}</p>
+          )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="phone">טלפון</Label>
-          <Input id="phone" name="phone" defaultValue={supplier?.phone ?? ""} />
+          <Label htmlFor="phone">טלפון *</Label>
+          <Input
+            id="phone"
+            name="phone"
+            dir="ltr"
+            defaultValue={supplier?.phone ?? ""}
+            aria-invalid={Boolean(state.fieldErrors?.phone)}
+          />
+          {state.fieldErrors?.phone && (
+            <p className={errorText}>{state.fieldErrors.phone[0]}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="email">אימייל</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            dir="ltr"
+            defaultValue={supplier?.email ?? ""}
+            aria-invalid={Boolean(state.fieldErrors?.email)}
+          />
+          {state.fieldErrors?.email && (
+            <p className={errorText}>{state.fieldErrors.email[0]}</p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="paymentTerms">תנאי תשלום</Label>
+          <select
+            id="paymentTerms"
+            name="paymentTerms"
+            defaultValue={supplier?.paymentTerms ?? ""}
+            className={selectClass}
+          >
+            <option value="">— ללא —</option>
+            {paymentTermsKeys.map((k) => (
+              <option key={k} value={k}>
+                {paymentTermsLabels[k]}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="email">אימייל</Label>
+        <Label htmlFor="website">קישור לקטלוג / אתר</Label>
         <Input
-          id="email"
-          name="email"
-          type="email"
+          id="website"
+          name="website"
+          type="url"
           dir="ltr"
-          defaultValue={supplier?.email ?? ""}
-          aria-invalid={Boolean(state.fieldErrors?.email)}
+          defaultValue={supplier?.website ?? ""}
+          aria-invalid={Boolean(state.fieldErrors?.website)}
+          placeholder="https://example.com"
         />
-        {state.fieldErrors?.email && (
-          <p className={errorText}>{state.fieldErrors.email[0]}</p>
+        {state.fieldErrors?.website && (
+          <p className={errorText}>{state.fieldErrors.website[0]}</p>
         )}
       </div>
 

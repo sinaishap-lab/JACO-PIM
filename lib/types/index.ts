@@ -64,6 +64,9 @@ export interface ProductComponent {
 }
 
 /** A vendor that supplies products or raw materials. */
+/** Payment terms agreed with a supplier. */
+export type PaymentTerms = "prepaid" | "end_of_month";
+
 export interface Supplier {
   id: string;
   name: string;
@@ -72,6 +75,10 @@ export interface Supplier {
   contactName: string | null;
   phone: string | null;
   email: string | null;
+  /** Link to the supplier's catalog / website. */
+  website: string | null;
+  /** Agreed payment terms. */
+  paymentTerms: PaymentTerms | null;
   notes: string | null;
 }
 

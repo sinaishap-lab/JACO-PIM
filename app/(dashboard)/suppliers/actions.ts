@@ -24,9 +24,11 @@ function parse(formData: FormData) {
   return supplierInputSchema.safeParse({
     name: formData.get("name"),
     code: text(formData.get("code")),
-    contactName: text(formData.get("contactName")),
-    phone: text(formData.get("phone")),
+    contactName: text(formData.get("contactName")) ?? "",
+    phone: text(formData.get("phone")) ?? "",
     email: text(formData.get("email")),
+    website: text(formData.get("website")),
+    paymentTerms: text(formData.get("paymentTerms")),
     notes: text(formData.get("notes")),
   });
 }
