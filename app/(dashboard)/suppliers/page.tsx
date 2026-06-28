@@ -9,15 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { listSuppliers } from "@/lib/services/supplier.service";
+import { SuppliersTable } from "@/components/suppliers/suppliers-table";
 import type { Supplier } from "@/lib/types";
 
 const supabaseConfigured = Boolean(
@@ -89,41 +82,7 @@ export default async function SuppliersPage() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="py-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>שם</TableHead>
-                <TableHead>קוד</TableHead>
-                <TableHead>איש קשר</TableHead>
-                <TableHead>טלפון</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {suppliers.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell className="font-medium">
-                    <Link
-                      href={`/suppliers/${s.id}`}
-                      className="hover:underline"
-                    >
-                      {s.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground font-mono text-xs">
-                    {s.code ?? "—"}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {s.contactName ?? "—"}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground" dir="ltr">
-                    {s.phone ?? "—"}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+        <SuppliersTable suppliers={suppliers} />
       )}
     </div>
   );

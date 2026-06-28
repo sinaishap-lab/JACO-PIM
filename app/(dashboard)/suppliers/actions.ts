@@ -73,3 +73,11 @@ export async function deleteSupplierAction(id: string): Promise<void> {
   revalidatePath("/suppliers");
   redirect("/suppliers");
 }
+
+/** Deletes one or more suppliers (used by the list's row & bulk delete). */
+export async function deleteSuppliersAction(ids: string[]): Promise<void> {
+  for (const id of ids) {
+    await deleteSupplier(id);
+  }
+  revalidatePath("/suppliers");
+}
