@@ -122,10 +122,18 @@ export default function DesignSystemPage() {
               </div>
             </div>
             <div>
-              <h3 className="mb-3 text-sm font-bold text-ink-700">Accent · כתום משני</h3>
+              <h3 className="mb-3 text-sm font-bold text-ink-700">Accent · כתום (אמצע הגרדיאנט)</h3>
               <div className="grid grid-cols-5 gap-3 sm:grid-cols-10">
                 {brandScale.map((n) => (
                   <Swatch key={n} name={`accent-${n}`} varName={`--color-accent-${n}`} />
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="mb-3 text-sm font-bold text-ink-700">Gold · זהב (&quot;PRINT&quot;)</h3>
+              <div className="grid grid-cols-5 gap-3 sm:grid-cols-10">
+                {brandScale.map((n) => (
+                  <Swatch key={n} name={`gold-${n}`} varName={`--color-gold-${n}`} />
                 ))}
               </div>
             </div>

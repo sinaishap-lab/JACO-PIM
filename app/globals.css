@@ -8,29 +8,41 @@
    ========================================================================== */
 
 @theme {
-  /* --- Brand: Pink (primary) --------------------------------------------- */
-  --color-brand-50: #fde7f1;
-  --color-brand-100: #fbc5de;
-  --color-brand-200: #f89bc6;
-  --color-brand-300: #f36ba8;
-  --color-brand-400: #f03e8e;
-  --color-brand-500: #ec1b7d; /* main brand pink */
-  --color-brand-600: #d1106b;
-  --color-brand-700: #a60c55;
-  --color-brand-800: #7c0940;
-  --color-brand-900: #54062b;
+  /* --- Brand: Pink (primary, "JACO") ------------------------------------- */
+  --color-brand-50: #fdecf4;
+  --color-brand-100: #fbd0e2;
+  --color-brand-200: #f7a9c8;
+  --color-brand-300: #f27dab;
+  --color-brand-400: #ee5896;
+  --color-brand-500: #e93c86; /* main brand pink (gradient start) */
+  --color-brand-600: #d62a74;
+  --color-brand-700: #b01f5e;
+  --color-brand-800: #851848;
+  --color-brand-900: #5a1031;
 
-  /* --- Accent: Orange (secondary) ---------------------------------------- */
-  --color-accent-50: #fff4e5;
-  --color-accent-100: #fee3bf;
-  --color-accent-200: #fccb85;
-  --color-accent-300: #fab14b;
-  --color-accent-400: #f89a20;
-  --color-accent-500: #f7941e; /* main brand orange */
-  --color-accent-600: #db7b0c;
-  --color-accent-700: #ae5f0a;
-  --color-accent-800: #824707;
-  --color-accent-900: #552f04;
+  /* --- Accent: Orange (gradient midpoint) -------------------------------- */
+  --color-accent-50: #fef0e7;
+  --color-accent-100: #fcd8c1;
+  --color-accent-200: #f9b890;
+  --color-accent-300: #f6975f;
+  --color-accent-400: #f5853f;
+  --color-accent-500: #f47b2d; /* main brand orange */
+  --color-accent-600: #db6418;
+  --color-accent-700: #af4f13;
+  --color-accent-800: #833b0f;
+  --color-accent-900: #57280a;
+
+  /* --- Gold: Yellow (secondary, "PRINT") --------------------------------- */
+  --color-gold-50: #fff8e1;
+  --color-gold-100: #ffedb3;
+  --color-gold-200: #fde081;
+  --color-gold-300: #fcd24f;
+  --color-gold-400: #fbc62c;
+  --color-gold-500: #fbbe18; /* main brand gold (gradient end) */
+  --color-gold-600: #e3a608;
+  --color-gold-700: #b9810a;
+  --color-gold-800: #8c610b;
+  --color-gold-900: #5c3f08;
 
   /* --- Neutrals (warm-tinted gray) --------------------------------------- */
   --color-ink-50: #f7f7f8;
@@ -88,16 +100,31 @@
 /* --- Brand gradient helpers (used by Logo, gradient buttons, accents) ----- */
 @layer utilities {
   .bg-brand-gradient {
-    background-image: linear-gradient(135deg, var(--color-accent-500) 0%, var(--color-brand-500) 100%);
+    background-image: linear-gradient(
+      135deg,
+      var(--color-brand-500) 0%,
+      var(--color-accent-500) 52%,
+      var(--color-gold-500) 100%
+    );
   }
   .text-brand-gradient {
-    background-image: linear-gradient(135deg, var(--color-accent-500) 0%, var(--color-brand-500) 100%);
+    background-image: linear-gradient(
+      135deg,
+      var(--color-brand-500) 0%,
+      var(--color-accent-500) 52%,
+      var(--color-gold-500) 100%
+    );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
   .ring-brand-gradient {
-    background-image: linear-gradient(135deg, var(--color-accent-500) 0%, var(--color-brand-500) 100%);
+    background-image: linear-gradient(
+      135deg,
+      var(--color-brand-500) 0%,
+      var(--color-accent-500) 52%,
+      var(--color-gold-500) 100%
+    );
   }
   /* Focus-visible ring shared by interactive components */
   .focus-ring {
