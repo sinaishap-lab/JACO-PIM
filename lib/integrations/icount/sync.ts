@@ -126,6 +126,10 @@ export async function syncProductsToIcount(): Promise<IcountSyncResult> {
     errors: [],
   };
 
+  // SKUs whose add_item raised the (often spurious) item_creation_failed —
+  // iCount tends to create the item anyway, so we verify these afterwards.
+  const unverified: string[] = [];
+
   for (const item of items) {
     const existingId = existing.get(item.sku);
     if (existingId != null) {
@@ -147,10 +151,34 @@ export async function syncProductsToIcount(): Promise<IcountSyncResult> {
       await icountRequest("inventory/add_item", toIcountFields(item));
       result.created++;
     } catch (err) {
-      result.errors.push(
-        `${item.sku}: ${err instanceof Error ? err.message : "שגיאה"}`
-      );
+      const msg = err instanceof Error ? err.message : "שגיאה";
+      // iCount returns `item_creation_failed` even when the item was actually
+      // created. Defer judgement: verify existence after the loop.
+      if (msg === "item_creation_failed" && item.sku) {
+        unverified.push(item.sku);
+      } else {
+        result.errors.push(`${item.sku}: ${msg}`);
+      }
     }
   }
+
+  // Reconcile the deferred SKUs against a fresh listing: those that now exist
+  // were really created; the rest are genuine failures.
+  if (unverified.length) {
+    let after = new Map<string, string | number>();
+    try {
+      after = await fetchExistingItems();
+    } catch {
+      after = new Map();
+    }
+    for (const sku of unverified) {
+      if (after.has(sku)) {
+        result.created++;
+      } else {
+        result.errors.push(`${sku}: item_creation_failed`);
+      }
+    }
+  }
+
   return result;
 }
