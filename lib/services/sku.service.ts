@@ -77,19 +77,28 @@ export async function regenerateProductSku(productId: string): Promise<void> {
   const departmentCode = await codeOf("departments", p.department_id);
   const subDepartmentCode = await codeOf("sub_departments", p.sub_department_id);
 
-  // Assign a per-department running number on first use.
+  // Assign a per-department running number on first use. Prefer the atomic RPC
+  // (migration 0020) to avoid duplicate numbers under concurrent saves; fall
+  // back to a max+1 query if the function isn't installed yet.
   let productNumber: number | null = p.product_number ?? null;
   if (productNumber == null && p.department_id) {
-    const { data } = await supabase
-      .from("products")
-      .select("product_number")
-      .eq("department_id", p.department_id)
-      .not("product_number", "is", null)
-      .order("product_number", { ascending: false })
-      .limit(1);
-    const max =
-      data && data.length ? Number(data[0].product_number) || 0 : 0;
-    productNumber = max + 1;
+    const { data: rpcNum, error: rpcErr } = await supabase.rpc(
+      "next_product_number",
+      { p_department_id: p.department_id }
+    );
+    if (!rpcErr && typeof rpcNum === "number") {
+      productNumber = rpcNum;
+    } else {
+      const { data } = await supabase
+        .from("products")
+        .select("product_number")
+        .eq("department_id", p.department_id)
+        .not("product_number", "is", null)
+        .order("product_number", { ascending: false })
+        .limit(1);
+      const max = data && data.length ? Number(data[0].product_number) || 0 : 0;
+      productNumber = max + 1;
+    }
   }
 
   const supplierCode = await getPreferredSupplierCode(productId);

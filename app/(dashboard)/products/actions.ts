@@ -11,17 +11,22 @@ import {
   deleteProduct,
 } from "@/lib/services/product.service";
 import { listAttributes } from "@/lib/services/attribute.service";
-import { setProductAttributeValues } from "@/lib/services/attribute-value.service";
+import {
+  setProductAttributeValues,
+  getProductAttributeValues,
+} from "@/lib/services/attribute-value.service";
 import {
   addComponent,
   removeComponent,
   clearComponents,
+  listComponents,
 } from "@/lib/services/component.service";
 import {
   addProductSupplier,
   removeProductSupplier,
   setPreferredSupplier,
   clearProductSuppliers,
+  listProductSuppliers,
 } from "@/lib/services/product-supplier.service";
 import {
   addSize,
@@ -29,9 +34,17 @@ import {
   addColor,
   removeColor,
   clearVariants,
+  listSizes,
+  listColors,
 } from "@/lib/services/variant.service";
 import { regenerateProductSku } from "@/lib/services/sku.service";
-import { setProductImages } from "@/lib/services/product-image.service";
+import {
+  setProductImages,
+  listProductImages,
+} from "@/lib/services/product-image.service";
+import {
+  listSupplierVariantSkus,
+} from "@/lib/services/supplier-variant-sku.service";
 import {
   setSupplierVariantSkus,
   clearSupplierVariantSkus,
@@ -265,9 +278,129 @@ async function persistProductCollections(
   await regenerateProductSku(productId);
 }
 
+/** A point-in-time copy of a product's collections, for rollback. */
+interface CollectionsSnapshot {
+  suppliers: {
+    supplierId: string;
+    supplierSku: string | null;
+    supplierName: string | null;
+    costPrice: number | null;
+    isPreferred: boolean;
+  }[];
+  sizes: { value: string; price: number | null; costPrice: number | null }[];
+  colors: { value: string; letter: string | null }[];
+  components: { componentId: string; quantity: number }[];
+  variantSkus: {
+    supplierId: string;
+    size: string | null;
+    color: string | null;
+    sku: string | null;
+    cost: number | null;
+  }[];
+  attributeValues: Record<string, unknown>;
+  images: { url: string; isPrimary: boolean }[];
+}
+
+/** Reads all of a product's collections so they can be restored on failure. */
+async function snapshotCollections(id: string): Promise<CollectionsSnapshot> {
+  const [suppliers, sizes, colors, components, vskMap, attributeValues, images] =
+    await Promise.all([
+      listProductSuppliers(id).catch(() => []),
+      listSizes(id).catch(() => []),
+      listColors(id).catch(() => []),
+      listComponents(id).catch(() => []),
+      listSupplierVariantSkus(id).catch(() => new Map()),
+      getProductAttributeValues(id).catch(() => ({})),
+      listProductImages(id).catch(() => []),
+    ]);
+
+  const variantSkus: CollectionsSnapshot["variantSkus"] = [];
+  for (const [supplierId, inner] of vskMap as Map<
+    string,
+    Map<string, { sku: string | null; cost: number | null }>
+  >) {
+    for (const [vk, v] of inner) {
+      const [size, color] = vk.split("::");
+      variantSkus.push({
+        supplierId,
+        size: size || null,
+        color: color || null,
+        sku: v.sku ?? null,
+        cost: v.cost ?? null,
+      });
+    }
+  }
+
+  return {
+    suppliers: suppliers.map((s) => ({
+      supplierId: s.supplierId,
+      supplierSku: s.supplierSku ?? null,
+      supplierName: s.supplierProductName ?? null,
+      costPrice: s.costPrice,
+      isPreferred: s.isPreferred,
+    })),
+    sizes: sizes.map((s) => ({
+      value: s.value,
+      price: s.price,
+      costPrice: s.costPrice,
+    })),
+    colors: colors.map((c) => ({ value: c.value, letter: c.letter })),
+    components: components.map((c) => ({
+      componentId: c.componentId,
+      quantity: c.quantity,
+    })),
+    variantSkus,
+    attributeValues,
+    images: images.map((im) => ({ url: im.url, isPrimary: im.isPrimary })),
+  };
+}
+
+async function clearAllCollections(id: string): Promise<void> {
+  await clearProductSuppliers(id);
+  await clearVariants(id);
+  await clearComponents(id);
+  await clearSupplierVariantSkus(id);
+}
+
+/** Restores collections from a snapshot (best-effort rollback). */
+async function restoreCollections(
+  id: string,
+  snap: CollectionsSnapshot
+): Promise<void> {
+  await clearAllCollections(id);
+  for (const s of snap.suppliers) {
+    await addProductSupplier(id, {
+      supplierId: s.supplierId,
+      supplierSku: s.supplierSku,
+      supplierName: s.supplierName,
+      costPrice: s.costPrice,
+      isPreferred: s.isPreferred,
+    });
+  }
+  for (const sz of snap.sizes) await addSize(id, sz.value, sz.price, sz.costPrice);
+  for (const c of snap.colors) await addColor(id, c.value, c.letter);
+  for (const cmp of snap.components) {
+    await addComponent(id, cmp.componentId, cmp.quantity);
+  }
+  const bySupplier = new Map<string, CollectionsSnapshot["variantSkus"]>();
+  for (const v of snap.variantSkus) {
+    const arr = bySupplier.get(v.supplierId) ?? [];
+    arr.push(v);
+    bySupplier.set(v.supplierId, arr);
+  }
+  for (const [sid, entries] of bySupplier) {
+    await setSupplierVariantSkus(id, sid, entries);
+  }
+  await setProductImages(id, snap.images);
+  await setProductAttributeValues(id, snap.attributeValues);
+  await regenerateProductSku(id);
+}
+
 /**
  * Updates a product and ALL its related data in one save: replaces suppliers,
- * sizes, colors, recipe and per-variant rows with the submitted set.
+ * sizes, colors, recipe and per-variant rows with the submitted set. If
+ * persisting the new set fails midway, the previous collections are restored
+ * (best-effort) so the product isn't left with partial data.
  */
 export async function updateProductAction(
   id: string,
@@ -278,15 +411,19 @@ export async function updateProductAction(
   if (!parsed.success) {
     return { fieldErrors: z.flattenError(parsed.error).fieldErrors };
   }
+  const snapshot = await snapshotCollections(id);
   try {
     await updateProduct(id, parsed.data);
     // Clear existing collections, then re-persist the submitted set.
-    await clearProductSuppliers(id);
-    await clearVariants(id);
-    await clearComponents(id);
-    await clearSupplierVariantSkus(id);
+    await clearAllCollections(id);
     await persistProductCollections(id, formData);
   } catch (err) {
+    // Roll the collections back to their pre-save state.
+    try {
+      await restoreCollections(id, snapshot);
+    } catch {
+      // If restore also fails there's nothing more we can do safely.
+    }
     return { error: err instanceof Error ? err.message : "שגיאה בעדכון המוצר" };
   }
   revalidatePath("/products");
