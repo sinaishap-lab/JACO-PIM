@@ -55,6 +55,9 @@ export function ProductForm({
   const [costStr, setCostStr] = useState(
     product?.costPrice != null ? String(product.costPrice) : ""
   );
+  const [saleStr, setSaleStr] = useState(
+    product?.salePrice != null ? String(product.salePrice) : ""
+  );
   const [contentStr, setContentStr] = useState(
     product?.contentAmount != null ? String(product.contentAmount) : ""
   );
@@ -71,6 +74,15 @@ export function ProductForm({
       : !Number.isNaN(costNum)
         ? costNum
         : null;
+
+  // Live profit for finished products: sale price − purchase cost.
+  const saleNum = parseFloat(saleStr);
+  const margin =
+    !Number.isNaN(saleNum) && !Number.isNaN(costNum)
+      ? saleNum - costNum
+      : null;
+  const marginPct =
+    margin != null && saleNum > 0 ? (margin / saleNum) * 100 : null;
 
   return (
     <form action={formAction} className="max-w-2xl space-y-6">
@@ -110,7 +122,7 @@ export function ProductForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="supplierId">ספק</Label>
+        <Label htmlFor="supplierId">ספק עיקרי</Label>
         <select
           id="supplierId"
           name="supplierId"
@@ -132,21 +144,63 @@ export function ProductForm({
       </div>
 
       {type === "finished" ? (
-        <div className="space-y-2">
-          <Label htmlFor="salePrice">מחיר מכירה (₪)</Label>
-          <Input
-            id="salePrice"
-            name="salePrice"
-            type="number"
-            step="0.01"
-            min="0"
-            defaultValue={product?.salePrice ?? ""}
-            aria-invalid={Boolean(state.fieldErrors?.salePrice)}
-            placeholder="0.00"
-          />
-          {state.fieldErrors?.salePrice && (
-            <p className={errorText}>{state.fieldErrors.salePrice[0]}</p>
-          )}
+        <div className="space-y-4 rounded-lg border p-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="salePrice">מחיר מכירה (₪)</Label>
+              <Input
+                id="salePrice"
+                name="salePrice"
+                type="number"
+                step="0.01"
+                min="0"
+                value={saleStr}
+                onChange={(e) => setSaleStr(e.target.value)}
+                aria-invalid={Boolean(state.fieldErrors?.salePrice)}
+                placeholder="0.00"
+              />
+              {state.fieldErrors?.salePrice && (
+                <p className={errorText}>{state.fieldErrors.salePrice[0]}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="costPrice">מחיר קנייה (עלות) (₪)</Label>
+              <Input
+                id="costPrice"
+                name="costPrice"
+                type="number"
+                step="0.01"
+                min="0"
+                value={costStr}
+                onChange={(e) => setCostStr(e.target.value)}
+                aria-invalid={Boolean(state.fieldErrors?.costPrice)}
+                placeholder="0.00"
+              />
+              {state.fieldErrors?.costPrice && (
+                <p className={errorText}>{state.fieldErrors.costPrice[0]}</p>
+              )}
+            </div>
+          </div>
+          <div className="bg-muted/50 rounded-md px-3 py-2 text-sm">
+            רווח:{" "}
+            <span className="font-semibold">
+              {margin == null
+                ? "—"
+                : `₪${margin.toLocaleString("he-IL", {
+                    maximumFractionDigits: 2,
+                  })}${
+                    marginPct == null
+                      ? ""
+                      : ` (${marginPct.toLocaleString("he-IL", {
+                          maximumFractionDigits: 1,
+                        })}%)`
+                  }`}
+            </span>
+          </div>
+          <p className="text-muted-foreground text-xs">
+            עלות הקנייה היא לרכישת מוצר מוכן. למוצר המורכב מחומרי גלם, העלות
+            מחושבת גם מהמתכון שבמסך המוצר.
+          </p>
         </div>
       ) : (
         <div className="space-y-4 rounded-lg border p-4">
