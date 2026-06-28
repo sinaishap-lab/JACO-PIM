@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Plus, Package, AlertCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -19,27 +18,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { listProducts } from "@/lib/services/product.service";
-import type { Product, ProductStatus, ProductType } from "@/lib/types";
+import { getSupplierSummaryMap } from "@/lib/services/product-supplier.service";
+import type { Product, ProductType } from "@/lib/types";
 
 const supabaseConfigured = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
-
-const statusLabels: Record<ProductStatus, string> = {
-  draft: "טיוטה",
-  published: "פורסם",
-  archived: "בארכיון",
-};
-
-const statusVariants: Record<
-  ProductStatus,
-  "default" | "secondary" | "outline"
-> = {
-  draft: "secondary",
-  published: "default",
-  archived: "outline",
-};
 
 function formatPrice(value: number | null): string {
   return value == null ? "—" : `₪${value.toLocaleString("he-IL")}`;
@@ -63,11 +48,16 @@ export async function ProductsView({
   priceHeader: string;
 }) {
   let products: Product[] = [];
+  let summaries = new Map<
+    string,
+    { cost: number | null; supplierLabel: string | null }
+  >();
   let loadError: string | null = null;
 
   if (supabaseConfigured) {
     try {
       products = await listProducts(type);
+      summaries = await getSupplierSummaryMap(products.map((p) => p.id));
     } catch (err) {
       loadError = err instanceof Error ? err.message : "שגיאה בטעינה";
     }
@@ -125,35 +115,40 @@ export async function ProductsView({
                 <TableHead>מק&quot;ט</TableHead>
                 <TableHead>שם</TableHead>
                 <TableHead>{priceHeader}</TableHead>
-                <TableHead>סטטוס</TableHead>
+                <TableHead>ספק עיקרי</TableHead>
+                <TableHead>עלות (ספק)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-mono text-xs">
-                    {product.sku}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    <Link
-                      href={`/products/${product.id}`}
-                      className="hover:underline"
-                    >
-                      {product.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground whitespace-nowrap">
-                    {type === "finished"
-                      ? formatPrice(product.salePrice)
-                      : formatPrice(product.costPrice)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={statusVariants[product.status]}>
-                      {statusLabels[product.status]}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {products.map((product) => {
+                const summary = summaries.get(product.id);
+                return (
+                  <TableRow key={product.id}>
+                    <TableCell className="font-mono text-xs">
+                      {product.sku ?? "—"}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      <Link
+                        href={`/products/${product.id}`}
+                        className="hover:underline"
+                      >
+                        {product.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap">
+                      {type === "finished"
+                        ? formatPrice(product.salePrice)
+                        : formatPrice(product.costPrice)}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {summary?.supplierLabel ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap">
+                      {formatPrice(summary?.cost ?? null)}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </Card>

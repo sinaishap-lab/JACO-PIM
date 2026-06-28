@@ -47,6 +47,14 @@ export function ProductSuppliers({
       .filter((c): c is number => c != null)
       .sort((a, b) => a - b)[0] ?? null;
 
+  // The line that determines the effective cost: preferred (with a price),
+  // otherwise the cheapest. Highlighted in the table.
+  const withPrice = links.filter((l) => l.costPrice != null);
+  const chosen =
+    withPrice.find((l) => l.isPreferred) ??
+    withPrice.slice().sort((a, b) => (a.costPrice ?? 0) - (b.costPrice ?? 0))[0];
+  const chosenId = chosen?.id ?? null;
+
   return (
     <div className="space-y-4">
       <div className="bg-muted/50 inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm">
@@ -68,12 +76,20 @@ export function ProductSuppliers({
             </TableHeader>
             <TableBody>
               {links.map((line) => (
-                <TableRow key={line.id}>
+                <TableRow
+                  key={line.id}
+                  className={cn(line.id === chosenId && "bg-muted/40")}
+                >
                   <TableCell className="font-medium">
                     <span className="inline-flex items-center gap-1">
                       {line.supplierLabel}
                       {line.isPreferred && (
                         <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                      )}
+                      {line.id === chosenId && (
+                        <span className="text-muted-foreground text-xs">
+                          (נבחר)
+                        </span>
                       )}
                     </span>
                   </TableCell>

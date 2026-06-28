@@ -118,6 +118,77 @@ export async function getEffectiveCostMap(
   return result;
 }
 
+export interface SupplierSummary {
+  /** Effective cost: preferred supplier's price, else the cheapest. */
+  cost: number | null;
+  /** Primary supplier name: preferred if marked, else the cheapest. */
+  supplierLabel: string | null;
+}
+
+/** Effective cost + primary supplier name per product id (for list views). */
+export async function getSupplierSummaryMap(
+  productIds: string[]
+): Promise<Map<string, SupplierSummary>> {
+  const result = new Map<string, SupplierSummary>();
+  if (productIds.length === 0) return result;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("product_suppliers")
+    .select("product_id, supplier_id, cost_price, is_preferred")
+    .in("product_id", productIds);
+  if (error) throw new Error(error.message);
+
+  type Row = {
+    product_id: string;
+    supplier_id: string;
+    cost_price: number | string | null;
+    is_preferred: boolean;
+  };
+  const rows = (data as Row[]) ?? [];
+  if (rows.length === 0) return result;
+
+  const { data: sups } = await supabase
+    .from("suppliers")
+    .select("id, name")
+    .in("id", Array.from(new Set(rows.map((r) => r.supplier_id))));
+  const nameById = new Map(
+    (sups as { id: string; name: string }[] | null)?.map((s) => [
+      s.id,
+      s.name,
+    ]) ?? []
+  );
+
+  const grouped = new Map<string, Row[]>();
+  for (const r of rows) {
+    const arr = grouped.get(r.product_id) ?? [];
+    arr.push(r);
+    grouped.set(r.product_id, arr);
+  }
+
+  for (const [productId, group] of grouped) {
+    const lines: ProductSupplierLine[] = group.map((r) => ({
+      id: "",
+      supplierId: r.supplier_id,
+      supplierLabel: nameById.get(r.supplier_id) ?? "",
+      supplierSku: null,
+      supplierProductName: null,
+      costPrice: num(r.cost_price),
+      isPreferred: r.is_preferred,
+    }));
+    const preferred = lines.find((l) => l.isPreferred);
+    const cheapest = lines
+      .filter((l) => l.costPrice != null)
+      .sort((a, b) => (a.costPrice ?? 0) - (b.costPrice ?? 0))[0];
+    const primary = preferred ?? cheapest ?? lines[0];
+    result.set(productId, {
+      cost: effectiveCost(lines),
+      supplierLabel: primary?.supplierLabel || null,
+    });
+  }
+  return result;
+}
+
 export async function addProductSupplier(
   productId: string,
   input: {
