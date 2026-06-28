@@ -6,6 +6,9 @@ import { SupplierOrderForm } from "@/components/suppliers/supplier-order-form";
 import { getSupplier } from "@/lib/services/supplier.service";
 import { listSupplierOrderProducts } from "@/lib/services/order.service";
 
+// Always read fresh data — never serve a stale order from cache.
+export const dynamic = "force-dynamic";
+
 export default async function SupplierOrderPage({
   params,
 }: {

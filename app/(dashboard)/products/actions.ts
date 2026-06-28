@@ -284,6 +284,8 @@ export async function updateProductAction(
   revalidatePath("/products");
   revalidatePath("/materials");
   revalidatePath(`/products/${id}`);
+  // Supplier order forms depend on this product's data.
+  revalidatePath("/suppliers", "layout");
   redirect("/products");
 }
 
