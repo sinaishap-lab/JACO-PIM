@@ -64,7 +64,7 @@ async function buildCatalogItems(): Promise<CatalogItem[]> {
 
 /** Existing iCount items as a map: sku → item_id. */
 async function fetchExistingItems(): Promise<Map<string, string | number>> {
-  const json = await icountRequest("inventory/list");
+  const json = await icountRequest("inventory/get_items");
   const raw = (json.items ?? json.data ?? json.list ?? []) as unknown;
   const arr: Record<string, unknown>[] = Array.isArray(raw)
     ? (raw as Record<string, unknown>[])
@@ -121,7 +121,7 @@ export async function syncProductsToIcount(): Promise<IcountSyncResult> {
         });
         result.updated++;
       } else {
-        await icountRequest("inventory/create", toIcountFields(item));
+        await icountRequest("inventory/add_item", toIcountFields(item));
         result.created++;
       }
     } catch (err) {

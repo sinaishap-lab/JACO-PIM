@@ -3,74 +3,97 @@ import "server-only";
 import { icountRequest } from "./client";
 
 /**
- * Diagnostic: we don't know the exact iCount inventory method name (create/list
- * have all returned `bad_method`). This probes a list of candidate endpoints
- * with a tiny test payload and reports the result of each, so we can identify
- * the real method name from the one that does NOT return `bad_method`.
- *
- * A `bad_method` reply means the endpoint doesn't exist. Anything else (success,
- * or a field-level error like "missing description") means the method IS valid
- * — that's the one we want.
+ * Diagnostic for wiring up the iCount inventory sync. The valid endpoints were
+ * discovered to be `inventory/get_items` (list) and `inventory/add_item`
+ * (create). `add_item` returns a generic `item_creation_failed`, so we don't
+ * yet know the exact field names it expects. This probe:
+ *   1. Dumps the field structure of an existing iCount item (from get_items),
+ *      which reveals the real field names to mirror in add_item.
+ *   2. Tries `add_item` with several field-name variants and reports each.
  */
-
-const CREATE_CANDIDATES = [
-  "inventory/create",
-  "inventory/add",
-  "inventory/add_item",
-  "inventory/create_item",
-  "inventory/new",
-  "inventory/save",
-  "inventory/insert",
-  "inventory/store",
-  "inventory/item",
-  "inventory/set",
-];
-
-const LIST_CANDIDATES = [
-  "inventory/list",
-  "inventory/get_list",
-  "inventory/items",
-  "inventory/get_items",
-  "inventory/get",
-  "inventory/all",
-  "inventory/search",
-  "inventory/index",
-];
-
-/** A harmless test item used only to probe which create endpoint exists. */
-const TEST_ITEM = {
-  sku: "PROBE_DEL",
-  description: "בדיקת חיבור — אפשר למחוק",
-  unitprice: 1,
-};
 
 export interface ProbeLine {
   method: string;
   result: string;
 }
 
-async function probeOne(
+async function tryCall(
   method: string,
   body: Record<string, unknown>
 ): Promise<ProbeLine> {
   try {
-    await icountRequest(method, body);
-    return { method, result: "✅ הצליח" };
+    const json = await icountRequest(method, body);
+    return { method, result: "✅ הצליח · " + JSON.stringify(json).slice(0, 200) };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "שגיאה";
-    return { method, result: msg };
+    return { method, result: err instanceof Error ? err.message : "שגיאה" };
   }
 }
 
+/** Pulls a sample existing item and returns its field names + a sample row. */
+async function dumpExistingItemShape(): Promise<ProbeLine[]> {
+  try {
+    const json = await icountRequest("inventory/get_items");
+    const raw = (json.items ?? json.data ?? json.list ?? json) as unknown;
+    let first: Record<string, unknown> | undefined;
+    if (Array.isArray(raw)) {
+      first = raw[0] as Record<string, unknown> | undefined;
+    } else if (raw && typeof raw === "object") {
+      const vals = Object.values(raw as object);
+      first = vals.find((v) => v && typeof v === "object") as
+        | Record<string, unknown>
+        | undefined;
+    }
+    if (!first) {
+      return [{ method: "get_items", result: "אין פריטים קיימים להצגת מבנה" }];
+    }
+    const keys = Object.keys(first).join(", ");
+    return [
+      { method: "שדות פריט קיים", result: keys },
+      {
+        method: "דוגמה",
+        result: JSON.stringify(first).slice(0, 400),
+      },
+    ];
+  } catch (err) {
+    return [
+      {
+        method: "get_items",
+        result: err instanceof Error ? err.message : "שגיאה",
+      },
+    ];
+  }
+}
+
+/** Field-name variants to try against add_item, to find the accepted shape. */
+const ADD_ITEM_VARIANTS: { label: string; body: Record<string, unknown> }[] = [
+  {
+    label: "add_item {sku,name,unitprice}",
+    body: { sku: "PROBE_DEL", name: "בדיקה", unitprice: 1 },
+  },
+  {
+    label: "add_item {sku,item_name,unitprice}",
+    body: { sku: "PROBE_DEL", item_name: "בדיקה", unitprice: 1 },
+  },
+  {
+    label: "add_item {sku,description,unitprice}",
+    body: { sku: "PROBE_DEL", description: "בדיקה", unitprice: 1 },
+  },
+  {
+    label: "add_item {catalog_number,name,unitprice}",
+    body: { catalog_number: "PROBE_DEL", name: "בדיקה", unitprice: 1 },
+  },
+  {
+    label: "add_item {sku,name,unitprice,cost}",
+    body: { sku: "PROBE_DEL", name: "בדיקה", unitprice: 1, cost: 0.5 },
+  },
+];
+
 export async function probeIcountMethods(): Promise<ProbeLine[]> {
   const lines: ProbeLine[] = [];
-  // Read-only list probes first (no side effects).
-  for (const m of LIST_CANDIDATES) {
-    lines.push(await probeOne(m, {}));
-  }
-  // Create probes (may create a "PROBE_DEL" item if a method works).
-  for (const m of CREATE_CANDIDATES) {
-    lines.push(await probeOne(m, TEST_ITEM));
+  lines.push(...(await dumpExistingItemShape()));
+  for (const v of ADD_ITEM_VARIANTS) {
+    const r = await tryCall("inventory/add_item", v.body);
+    lines.push({ method: v.label, result: r.result });
   }
   return lines;
 }
