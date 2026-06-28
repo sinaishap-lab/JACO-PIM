@@ -62,6 +62,18 @@ export function SupplierOrderForm({
     return rows;
   }, [products, qty]);
 
+  // Group products by department so the page isn't cluttered.
+  const groups = useMemo(() => {
+    const m = new Map<string, OrderProduct[]>();
+    for (const p of products) {
+      const key = p.department ?? "ללא מחלקה";
+      const arr = m.get(key) ?? [];
+      arr.push(p);
+      m.set(key, arr);
+    }
+    return Array.from(m, ([department, items]) => ({ department, items }));
+  }, [products]);
+
   if (products.length === 0) {
     return (
       <p className="text-muted-foreground text-sm">
@@ -84,48 +96,67 @@ export function SupplierOrderForm({
           </Button>
         </div>
 
-        {products.map((p) => (
-          <div key={p.productId} className="space-y-2">
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-sm font-semibold">{p.productName}</h3>
-              {p.supplierSku && (
-                <span className="text-muted-foreground font-mono text-xs" dir="ltr">
-                  {p.supplierSku}
-                </span>
-              )}
+        {groups.map((g) => (
+          <details
+            key={g.department}
+            open
+            className="rounded-lg border [&_summary::-webkit-details-marker]:hidden"
+          >
+            <summary className="bg-muted/30 flex cursor-pointer items-center justify-between rounded-t-lg px-4 py-2 text-sm font-semibold">
+              <span>{g.department}</span>
+              <span className="text-muted-foreground font-normal">
+                {g.items.length} מוצרים
+              </span>
+            </summary>
+            <div className="space-y-4 p-4">
+              {g.items.map((p) => (
+                <div key={p.productId} className="space-y-2">
+                  <div className="flex items-baseline gap-2">
+                    <h3 className="text-sm font-semibold">{p.productName}</h3>
+                    {p.supplierSku && (
+                      <span
+                        className="text-muted-foreground font-mono text-xs"
+                        dir="ltr"
+                      >
+                        {p.supplierSku}
+                      </span>
+                    )}
+                  </div>
+                  <Card className="py-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>גודל</TableHead>
+                          <TableHead>צבע</TableHead>
+                          <TableHead className="w-32">כמות</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {p.variants.map((v) => (
+                          <TableRow key={v.key}>
+                            <TableCell>{v.size ?? "—"}</TableCell>
+                            <TableCell>{v.color ?? "—"}</TableCell>
+                            <TableCell>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="1"
+                                inputMode="numeric"
+                                value={qty[v.key] ?? ""}
+                                onChange={(e) => setQ(v.key, e.target.value)}
+                                placeholder="0"
+                                className="h-8 w-24"
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </Card>
+                </div>
+              ))}
             </div>
-            <Card className="py-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>גודל</TableHead>
-                    <TableHead>צבע</TableHead>
-                    <TableHead className="w-32">כמות</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {p.variants.map((v) => (
-                    <TableRow key={v.key}>
-                      <TableCell>{v.size ?? "—"}</TableCell>
-                      <TableCell>{v.color ?? "—"}</TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="1"
-                          inputMode="numeric"
-                          value={qty[v.key] ?? ""}
-                          onChange={(e) => setQ(v.key, e.target.value)}
-                          placeholder="0"
-                          className="h-8 w-24"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Card>
-          </div>
+          </details>
         ))}
       </div>
 

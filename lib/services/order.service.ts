@@ -17,6 +17,8 @@ export interface OrderVariant {
 export interface OrderProduct {
   productId: string;
   productName: string;
+  /** Department name, for grouping (null if unclassified). */
+  department: string | null;
   /** Our internal SKU. */
   ourSku: string | null;
   /** The supplier's product-level part number (fallback). */
@@ -49,7 +51,10 @@ export async function listSupplierOrderProducts(
 
   const [{ data: products }, { data: sizes }, { data: colors }, { data: vSkus }] =
     await Promise.all([
-      supabase.from("products").select("id, name, sku").in("id", productIds),
+      supabase
+        .from("products")
+        .select("id, name, sku, department_id")
+        .in("id", productIds),
       supabase
         .from("product_sizes")
         .select("product_id, value")
@@ -93,7 +98,28 @@ export async function listSupplierOrderProducts(
     colorsByProduct.set(c.product_id, arr);
   }
 
-  const rows = (products as { id: string; name: string; sku: string | null }[]) ?? [];
+  const rows =
+    (products as {
+      id: string;
+      name: string;
+      sku: string | null;
+      department_id: string | null;
+    }[]) ?? [];
+
+  // Department names for grouping.
+  const deptIds = Array.from(
+    new Set(rows.map((r) => r.department_id).filter((d): d is string => !!d))
+  );
+  const deptById = new Map<string, string>();
+  if (deptIds.length) {
+    const { data: deps } = await supabase
+      .from("departments")
+      .select("id, name")
+      .in("id", deptIds);
+    for (const d of (deps as { id: string; name: string }[]) ?? []) {
+      deptById.set(d.id, d.name);
+    }
+  }
 
   return rows
     .map((p) => {
@@ -115,6 +141,7 @@ export async function listSupplierOrderProducts(
       return {
         productId: p.id,
         productName: p.name,
+        department: p.department_id ? deptById.get(p.department_id) ?? null : null,
         ourSku: p.sku,
         supplierSku: productSku,
         variants,
