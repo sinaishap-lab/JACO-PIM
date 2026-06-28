@@ -250,9 +250,11 @@
     border: none;
   }
   .label,
+  .label-canvas,
   .box-label {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    break-inside: avoid;
   }
 }
 

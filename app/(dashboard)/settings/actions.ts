@@ -39,26 +39,14 @@ export async function saveIcountSettingsAction(
   return { ok: true };
 }
 
-/** Saves the product-sticker design (size + which fields appear). */
+/** Saves the product-sticker design (visual drag&drop layout, JSON). */
 export async function saveLabelSettingsAction(
   _prev: SettingsState,
   formData: FormData
 ): Promise<SettingsState> {
-  const num = (k: string) => Number(formData.get(k));
-  const on = (k: string) => formData.get(k) === "on";
+  // Sanitize the submitted layout through the parser before storing.
   const config: LabelConfig = parseLabelConfig(
-    JSON.stringify({
-      widthMm: num("widthMm"),
-      heightMm: num("heightMm"),
-      nameFontPt: num("nameFontPt"),
-      priceFontPt: num("priceFontPt"),
-      showLogo: on("showLogo"),
-      showName: on("showName"),
-      showSize: on("showSize"),
-      showBarcode: on("showBarcode"),
-      showSku: on("showSku"),
-      showPrice: on("showPrice"),
-    })
+    String(formData.get("config") ?? "")
   );
   try {
     await setSettings({ [LABEL_CONFIG_KEY]: JSON.stringify(config) });

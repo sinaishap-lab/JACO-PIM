@@ -1,7 +1,7 @@
 import { getSettings } from "@/lib/services/settings.service";
 import { IcountSettingsForm } from "@/components/settings/icount-settings-form";
 import { GoogleAiSettingsForm } from "@/components/settings/google-ai-settings-form";
-import { LabelSettingsForm } from "@/components/settings/label-settings-form";
+import { LabelDesigner } from "@/components/settings/label-designer";
 import {
   parseLabelConfig,
   LABEL_CONFIG_KEY,
@@ -76,10 +76,11 @@ export default async function SettingsPage() {
         <div className="space-y-1">
           <h2 className="text-lg font-semibold">עיצוב מדבקת מוצר</h2>
           <p className="text-muted-foreground text-sm">
-            מבנה וגודל המדבקה הקטנה (בהדפסה מעמוד המוצר). השינוי חל על כל המדבקות.
+            עורך ויזואלי — גררו אלמנטים, שנו גודל, והגדירו מבנה. השינוי חל על כל
+            המדבקות בהדפסה.
           </p>
         </div>
-        <LabelSettingsForm config={labelConfig} />
+        <LabelDesigner config={labelConfig} />
       </section>
     </div>
   );

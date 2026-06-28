@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { JacoMark } from "@/components/brand/jaco-logo";
 import { code128 } from "@/lib/barcode";
 import { DEFAULT_LABEL_CONFIG, type LabelConfig } from "@/lib/label-config";
-import { LabelSticker, formatPrice } from "@/components/products/label-sticker";
+import { LabelCanvas, formatPrice } from "@/components/products/label-canvas";
 
 export interface LabelVariant {
   sku: string;
@@ -138,7 +138,7 @@ function ProductLabels({
 
       <div className="label-sheet print-area hidden print:block">
         {toPrint.map((v, i) => (
-          <LabelSticker key={i} data={v} config={config} />
+          <LabelCanvas key={i} data={v} config={config} />
         ))}
       </div>
     </div>
