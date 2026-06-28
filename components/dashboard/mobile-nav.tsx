@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Package, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { JacoLogo } from "@/components/brand/jaco-logo";
 import { navItems, isActive } from "./nav";
 
 export function MobileNav() {
@@ -15,10 +16,7 @@ export function MobileNav() {
   return (
     <div className="bg-sidebar text-sidebar-foreground border-b md:hidden print:!hidden">
       <div className="flex h-14 items-center justify-between px-4">
-        <span className="flex items-center gap-2 font-semibold">
-          <Package className="size-5" />
-          JACO-PIM
-        </span>
+        <JacoLogo />
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
