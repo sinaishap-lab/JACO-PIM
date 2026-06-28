@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Package } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { JacoLogo } from "@/components/brand/jaco-logo";
 import { navItems, isActive } from "./nav";
 
 export function Sidebar() {
@@ -12,9 +12,8 @@ export function Sidebar() {
 
   return (
     <aside className="bg-sidebar text-sidebar-foreground hidden w-60 shrink-0 flex-col border-l md:flex print:!hidden">
-      <div className="flex h-14 items-center gap-2 border-b px-5 font-semibold">
-        <Package className="size-5" />
-        JACO-PIM
+      <div className="flex h-14 items-center border-b px-5">
+        <JacoLogo />
       </div>
       <nav className="flex flex-1 flex-col gap-1 p-3">
         {navItems.map(({ href, label, icon: Icon }) => {

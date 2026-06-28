@@ -1,0 +1,132 @@
+/* ============================================================================
+   JACO PRINT — brand theme for shadcn/ui (Tailwind v4)
+   Drop-in replacement for the :root and .dark blocks in app/globals.css.
+   Keep your existing `@theme inline { … }` mapping and variable NAMES — only the
+   VALUES change here, so every existing bg-primary / text-primary / border /
+   sidebar / rounded-* rebrands automatically. Append the @layer utilities block
+   at the bottom for the signature gradient.
+
+   Brand: hot-pink #e93c86 · orange #f47b2d · gold #fbbe18
+   Gradient: 135deg pink → orange → gold
+   ========================================================================== */
+
+:root {
+  --radius: 1rem; /* brand leans rounded */
+
+  --background: #ffffff;
+  --foreground: #18181b;
+
+  --card: #ffffff;
+  --card-foreground: #18181b;
+
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+
+  --primary: #e93c86;            /* JACO pink */
+  --primary-foreground: #ffffff;
+
+  --secondary: #f5f5f7;          /* warm neutral */
+  --secondary-foreground: #2a2a31;
+
+  --muted: #f5f5f7;
+  --muted-foreground: #71717f;
+
+  --accent: #fdecf4;             /* soft pink — hover/active surfaces */
+  --accent-foreground: #b01f5e;
+
+  --destructive: #e11d48;
+  --destructive-foreground: #ffffff;
+
+  --border: #ececef;
+  --input: #ececef;
+  --ring: #ee5896;               /* pink focus ring */
+
+  --chart-1: #e93c86;            /* pink */
+  --chart-2: #f47b2d;            /* orange */
+  --chart-3: #fbbe18;            /* gold */
+  --chart-4: #f27dab;            /* light pink */
+  --chart-5: #db6418;            /* deep orange */
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #18181b;
+  --sidebar-primary: #e93c86;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #fdecf4;
+  --sidebar-accent-foreground: #b01f5e;
+  --sidebar-border: #ececef;
+  --sidebar-ring: #ee5896;
+
+  /* Brand raw values + signature gradient (use via utilities below) */
+  --brand-pink: #e93c86;
+  --brand-orange: #f47b2d;
+  --brand-gold: #fbbe18;
+  --brand-gradient: linear-gradient(135deg, #e93c86 0%, #f47b2d 52%, #fbbe18 100%);
+
+  /* Fonts — see SKILL.md step 2 to load Rubik + Heebo in layout.tsx */
+  --font-sans: var(--font-heebo);
+  --font-display: var(--font-rubik);
+  --font-mono: var(--font-geist-mono);
+}
+
+.dark {
+  --background: #141417;
+  --foreground: #f4f4f5;
+
+  --card: #1d1d21;
+  --card-foreground: #f4f4f5;
+
+  --popover: #1d1d21;
+  --popover-foreground: #f4f4f5;
+
+  --primary: #ef5293;            /* slightly lighter pink for dark contrast */
+  --primary-foreground: #ffffff;
+
+  --secondary: #2a2a31;
+  --secondary-foreground: #f4f4f5;
+
+  --muted: #2a2a31;
+  --muted-foreground: #a1a1aa;
+
+  --accent: #3a2230;             /* deep pink-tinted hover */
+  --accent-foreground: #fbd0e2;
+
+  --destructive: #f43f5e;
+  --destructive-foreground: #ffffff;
+
+  --border: #ffffff1a;
+  --input: #ffffff26;
+  --ring: #ef5293;
+
+  --chart-1: #ef5293;
+  --chart-2: #f8943f;
+  --chart-3: #fbbe18;
+  --chart-4: #f27dab;
+  --chart-5: #db6418;
+
+  --sidebar: #18181b;
+  --sidebar-foreground: #f4f4f5;
+  --sidebar-primary: #ef5293;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #2a2a31;
+  --sidebar-accent-foreground: #f4f4f5;
+  --sidebar-border: #ffffff14;
+  --sidebar-ring: #ef5293;
+
+  --brand-pink: #ef5293;
+  --brand-orange: #f8943f;
+  --brand-gold: #fbbe18;
+  --brand-gradient: linear-gradient(135deg, #ef5293 0%, #f8943f 52%, #fbbe18 100%);
+}
+
+/* Signature gradient utilities — append once, outside :root/.dark */
+@layer utilities {
+  .bg-brand-gradient {
+    background-image: var(--brand-gradient);
+  }
+  .text-brand-gradient {
+    background-image: var(--brand-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
