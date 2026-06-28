@@ -19,6 +19,7 @@ import {
 import {
   addProductSupplier,
   removeProductSupplier,
+  setPreferredSupplier,
 } from "@/lib/services/product-supplier.service";
 import {
   addSize,
@@ -130,6 +131,7 @@ export async function createProductAction(
   }
   try {
     const product = await createProduct(parsed.data);
+    await setPreferredSupplier(product.id, toText(formData.get("supplierId")));
     await regenerateProductSku(product.id);
   } catch (err) {
     return { error: err instanceof Error ? err.message : "שגיאה ביצירת המוצר" };
@@ -149,6 +151,7 @@ export async function updateProductAction(
   }
   try {
     await updateProduct(id, parsed.data);
+    await setPreferredSupplier(id, toText(formData.get("supplierId")));
     await regenerateProductSku(id);
   } catch (err) {
     return { error: err instanceof Error ? err.message : "שגיאה בעדכון המוצר" };

@@ -143,6 +143,52 @@ export async function addProductSupplier(
   if (error) throw new Error(error.message);
 }
 
+/**
+ * Sets a product's primary (preferred) supplier from the product form. Links
+ * the supplier if not yet linked (without clobbering existing cost/SKU details),
+ * marks it preferred, and clears the preferred flag on the product's other
+ * suppliers. Passing null clears the preferred flag entirely.
+ */
+export async function setPreferredSupplier(
+  productId: string,
+  supplierId: string | null
+): Promise<void> {
+  const supabase = await createClient();
+
+  // Clear the preferred flag on all current links for this product.
+  const { error: clearErr } = await supabase
+    .from("product_suppliers")
+    .update({ is_preferred: false })
+    .eq("product_id", productId);
+  if (clearErr) throw new Error(clearErr.message);
+
+  if (!supplierId) return;
+
+  // Does a link already exist? Keep its details; just mark it preferred.
+  const { data: existing, error: findErr } = await supabase
+    .from("product_suppliers")
+    .select("id")
+    .eq("product_id", productId)
+    .eq("supplier_id", supplierId)
+    .maybeSingle();
+  if (findErr) throw new Error(findErr.message);
+
+  if (existing) {
+    const { error } = await supabase
+      .from("product_suppliers")
+      .update({ is_preferred: true })
+      .eq("id", (existing as { id: string }).id);
+    if (error) throw new Error(error.message);
+  } else {
+    const { error } = await supabase.from("product_suppliers").insert({
+      product_id: productId,
+      supplier_id: supplierId,
+      is_preferred: true,
+    });
+    if (error) throw new Error(error.message);
+  }
+}
+
 export async function removeProductSupplier(rowId: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase
