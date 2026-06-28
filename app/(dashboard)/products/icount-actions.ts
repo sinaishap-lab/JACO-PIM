@@ -15,9 +15,11 @@ export async function syncIcountAction(): Promise<IcountSyncState> {
   }
   try {
     const r = await syncProductsToIcount();
-    const errs = r.errors.length ? ` · ${r.errors.length} שגיאות` : "";
+    const errs = r.errors.length
+      ? ` · ${r.errors.length} שגיאות · ${r.errors[0]}`
+      : "";
     return {
-      ok: true,
+      ok: r.errors.length === 0,
       message: `סונכרן: ${r.created} נוצרו, ${r.updated} עודכנו (מתוך ${r.total})${errs}`,
     };
   } catch (err) {
