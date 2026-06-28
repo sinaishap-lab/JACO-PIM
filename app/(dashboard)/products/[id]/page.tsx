@@ -99,7 +99,12 @@ export default async function EditProductPage({
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">פרטי מוצר</h2>
-        <ProductForm action={action} product={product} tree={tree} />
+        <ProductForm
+          action={action}
+          product={product}
+          tree={tree}
+          sized={sizes.length > 0}
+        />
       </section>
 
       <section className="space-y-4 border-t pt-8">

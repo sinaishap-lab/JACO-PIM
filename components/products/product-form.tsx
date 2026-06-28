@@ -28,11 +28,14 @@ export function ProductForm({
   product,
   initialType,
   tree = [],
+  sized = false,
 }: {
   action: Action;
   product?: Product;
   initialType?: ProductType;
   tree?: DepartmentNode[];
+  /** True when the product has size variants — prices are then per size. */
+  sized?: boolean;
 }) {
   const [state, formAction, pending] = useActionState<
     ProductFormState,
@@ -118,6 +121,13 @@ export function ProductForm({
       </div>
 
       {type === "finished" ? (
+        sized ? (
+          <div className="text-muted-foreground rounded-lg border p-4 text-sm">
+            למוצר יש גדלים — מחיר המכירה נקבע לכל גודל, ומחיר הקנייה לכל גודל
+            ולכל ספק (בקטעים &quot;וריאנטים&quot; ו&quot;מק&quot;ט ועלות ספק לכל
+            וריאנט&quot; למטה).
+          </div>
+        ) : (
         <div className="space-y-4 rounded-lg border p-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
@@ -176,6 +186,7 @@ export function ProductForm({
             מחושבת גם מהמתכון שבמסך המוצר.
           </p>
         </div>
+        )
       ) : (
         <div className="space-y-4 rounded-lg border p-4">
           <div className="grid gap-4 sm:grid-cols-2">
