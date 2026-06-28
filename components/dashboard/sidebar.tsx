@@ -11,7 +11,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="bg-sidebar text-sidebar-foreground hidden w-60 shrink-0 flex-col border-l md:flex">
+    <aside className="bg-sidebar text-sidebar-foreground hidden w-60 shrink-0 flex-col border-l md:flex print:!hidden">
       <div className="flex h-14 items-center gap-2 border-b px-5 font-semibold">
         <Package className="size-5" />
         JACO-PIM

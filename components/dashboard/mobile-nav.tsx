@@ -13,7 +13,7 @@ export function MobileNav() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="bg-sidebar text-sidebar-foreground border-b md:hidden">
+    <div className="bg-sidebar text-sidebar-foreground border-b md:hidden print:!hidden">
       <div className="flex h-14 items-center justify-between px-4">
         <span className="flex items-center gap-2 font-semibold">
           <Package className="size-5" />

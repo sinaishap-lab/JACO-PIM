@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ClipboardList } from "lucide-react";
 
 import { SupplierForm } from "@/components/suppliers/supplier-form";
 import { DeleteSupplierButton } from "@/components/suppliers/delete-supplier-button";
+import { Button } from "@/components/ui/button";
 import { getSupplier } from "@/lib/services/supplier.service";
 import { updateSupplierAction } from "../actions";
 
@@ -34,7 +35,15 @@ export default async function EditSupplierPage({
           </Link>
           <h1 className="text-2xl font-bold tracking-tight">{supplier.name}</h1>
         </div>
-        <DeleteSupplierButton id={supplier.id} name={supplier.name} />
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link href={`/suppliers/${supplier.id}/order`}>
+              <ClipboardList />
+              טופס הזמנה
+            </Link>
+          </Button>
+          <DeleteSupplierButton id={supplier.id} name={supplier.name} />
+        </div>
       </header>
 
       <SupplierForm action={action} supplier={supplier} />
