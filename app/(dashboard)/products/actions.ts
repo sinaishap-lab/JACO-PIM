@@ -68,6 +68,13 @@ export async function saveProductAttributesAction(
         case "boolean":
           values[attr.id] = raw === "on";
           break;
+        case "multiselect": {
+          const picked = formData
+            .getAll(field)
+            .filter((v): v is string => typeof v === "string" && v.trim() !== "");
+          values[attr.id] = picked.length ? picked : null;
+          break;
+        }
         default:
           values[attr.id] =
             typeof raw === "string" && raw.trim() ? raw.trim() : null;

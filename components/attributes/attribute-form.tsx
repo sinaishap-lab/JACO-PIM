@@ -107,7 +107,7 @@ export function AttributeForm({
         </select>
       </div>
 
-      {type === "select" && (
+      {(type === "select" || type === "multiselect") && (
         <div className="space-y-2">
           <Label htmlFor="options">אפשרויות (שורה לכל אפשרות)</Label>
           <Textarea

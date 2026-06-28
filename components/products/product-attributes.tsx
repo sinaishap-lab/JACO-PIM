@@ -32,6 +32,7 @@ function AttributeField({
 }) {
   const field = `attr_${attr.id}`;
   const str = value == null ? "" : String(value);
+  const selected = Array.isArray(value) ? value.map((v) => String(v)) : [];
 
   if (attr.type === "boolean") {
     return (
@@ -53,7 +54,29 @@ function AttributeField({
         {attr.label}
         {attr.required && " *"}
       </Label>
-      {attr.type === "select" ? (
+      {attr.type === "multiselect" ? (
+        <div className="space-y-1.5 rounded-md border p-3">
+          {(attr.options ?? []).length === 0 ? (
+            <p className="text-muted-foreground text-sm">לא הוגדרו אפשרויות.</p>
+          ) : (
+            (attr.options ?? []).map((opt) => (
+              <label
+                key={opt}
+                className="flex items-center gap-2 text-sm font-medium"
+              >
+                <input
+                  type="checkbox"
+                  name={field}
+                  value={opt}
+                  defaultChecked={selected.includes(opt)}
+                  className="border-input size-4 rounded"
+                />
+                {opt}
+              </label>
+            ))
+          )}
+        </div>
+      ) : attr.type === "select" ? (
         <select
           id={field}
           name={field}

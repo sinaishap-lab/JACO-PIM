@@ -73,7 +73,10 @@ export async function createAttribute(
       label: input.label,
       type: input.type,
       audience: input.audience,
-      options: input.type === "select" ? input.options : null,
+      options:
+        input.type === "select" || input.type === "multiselect"
+          ? input.options
+          : null,
       required: input.required,
     })
     .select("*")
@@ -94,7 +97,10 @@ export async function updateAttribute(
       label: input.label,
       type: input.type,
       audience: input.audience,
-      options: input.type === "select" ? input.options : null,
+      options:
+        input.type === "select" || input.type === "multiselect"
+          ? input.options
+          : null,
       required: input.required,
     })
     .eq("id", id)
