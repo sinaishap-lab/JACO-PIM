@@ -93,9 +93,13 @@ async function fetchExistingItems(): Promise<Map<string, string | number>> {
 function toIcountFields(item: CatalogItem): Record<string, unknown> {
   return {
     sku: item.sku,
+    barcode: item.sku, // barcode mirrors the catalog number
     description: item.name, // iCount's item-name field is "description"
-    unitprice: item.price ?? 0,
-    cost_amount: item.cost ?? 0,
+    // Sale price is VAT-inclusive: set the incl-VAT field and flag it as the
+    // entered value so iCount derives the pre-VAT price from it.
+    unitprice_incvat: item.price ?? 0,
+    unitprice_incvat_entered: 1,
+    cost_amount: item.cost ?? 0, // cost is before VAT (as in iCount's form)
   };
 }
 
