@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { ClipboardList, Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -117,6 +117,17 @@ export function SuppliersTable({ suppliers }: { suppliers: Supplier[] }) {
                 </TableCell>
                 <TableCell className="text-end">
                   <div className="flex items-center justify-end gap-1">
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`טופס הזמנה — ${s.name}`}
+                      title="טופס הזמנה מהיר"
+                    >
+                      <Link href={`/suppliers/${s.id}/order`}>
+                        <ClipboardList className="size-4" />
+                      </Link>
+                    </Button>
                     <Button asChild variant="ghost" size="icon" aria-label="עריכה">
                       <Link href={`/suppliers/${s.id}`}>
                         <Pencil className="size-4" />
