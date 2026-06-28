@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   Logo,
   Button,
@@ -13,12 +14,25 @@ import {
   Textarea,
   Select,
   Switch,
+  Checkbox,
+  Radio,
   Table,
   THead,
   TBody,
   TR,
   TH,
   TD,
+  Alert,
+  Avatar,
+  AvatarGroup,
+  Progress,
+  Skeleton,
+  Tooltip,
+  Breadcrumbs,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
 } from "@/components/ui";
 
 /* --- Small presentational helpers (showcase-only) ------------------------- */
@@ -92,12 +106,18 @@ export default function DesignSystemPage() {
               PRINT. מהיר, מקומי, פשוט.
             </p>
             <div className="mt-7 flex flex-wrap justify-center gap-3 md:justify-start">
-              <Button variant="gradient" size="lg">
-                התחל לבנות
-              </Button>
-              <Button variant="outline" size="lg">
+              <Link
+                href="/products"
+                className="focus-ring inline-flex h-13 items-center justify-center gap-2 rounded-full bg-brand-gradient px-8 font-display text-base font-semibold text-white shadow-brand transition-[filter] hover:brightness-105"
+              >
+                צפה במסך לדוגמה
+              </Link>
+              <a
+                href="#colors"
+                className="focus-ring inline-flex h-13 items-center justify-center rounded-full border border-ink-200 bg-surface px-8 font-display text-base font-semibold text-ink-800 transition-colors hover:bg-ink-50"
+              >
                 קטלוג רכיבים
-              </Button>
+              </a>
             </div>
           </div>
           <Logo size="lg" />
@@ -335,6 +355,148 @@ export default function DesignSystemPage() {
               ))}
             </TBody>
           </Table>
+        </Section>
+
+        {/* Navigation */}
+        <Section id="nav" title="ניווט" subtitle="פירורי לחם וטאבים.">
+          <Card>
+            <CardBody className="space-y-6">
+              <Breadcrumbs
+                items={[
+                  { label: "בית", href: "#" },
+                  { label: "קטלוג", href: "#" },
+                  { label: "מוצרים" },
+                ]}
+              />
+              <Tabs defaultValue="info">
+                <TabsList>
+                  <TabsTrigger value="info">פרטים</TabsTrigger>
+                  <TabsTrigger value="media">תמונות</TabsTrigger>
+                  <TabsTrigger value="seo">SEO</TabsTrigger>
+                </TabsList>
+                <TabsContent value="info">
+                  <p className="text-sm text-muted-foreground">
+                    תוכן הטאב &quot;פרטים&quot; — שדות המוצר הבסיסיים.
+                  </p>
+                </TabsContent>
+                <TabsContent value="media">
+                  <p className="text-sm text-muted-foreground">
+                    תוכן הטאב &quot;תמונות&quot; — גלריית מדיה של המוצר.
+                  </p>
+                </TabsContent>
+                <TabsContent value="seo">
+                  <p className="text-sm text-muted-foreground">
+                    תוכן הטאב &quot;SEO&quot; — כותרות ותיאורים למנועי חיפוש.
+                  </p>
+                </TabsContent>
+              </Tabs>
+            </CardBody>
+          </Card>
+        </Section>
+
+        {/* Feedback */}
+        <Section id="feedback" title="הודעות ומשוב" subtitle="באנרים, התראות וטעינה.">
+          <div className="grid gap-3">
+            <Alert tone="success" title="המוצר נשמר">
+              כל השינויים סונכרנו לקטלוג בהצלחה.
+            </Alert>
+            <Alert tone="warning" title="מלאי נמוך">
+              ל-37 מוצרים נותרו פחות מ-10 יחידות במלאי.
+            </Alert>
+            <Alert tone="danger" title="שגיאה בשמירה">
+              מק&quot;ט זה כבר קיים במערכת. בחר מק&quot;ט אחר.
+            </Alert>
+            <Alert tone="info" title="טיפ">
+              ניתן לייבא מוצרים בכמות גדולה דרך קובץ CSV.
+            </Alert>
+          </div>
+        </Section>
+
+        {/* Avatars, progress, choices */}
+        <Section id="misc" title="רכיבים נוספים" subtitle="אווטארים, התקדמות, בחירה וטעינה.">
+          <div className="grid gap-5 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>אווטארים</CardTitle>
+              </CardHeader>
+              <CardBody className="flex items-center gap-4">
+                <Avatar name="סיני שפירא" size="lg" />
+                <Avatar name="בארי שפירא" />
+                <Avatar name="דנה כהן" size="sm" />
+                <AvatarGroup>
+                  <Avatar name="א ב" size="sm" />
+                  <Avatar name="ג ד" size="sm" />
+                  <Avatar name="ה ו" size="sm" />
+                  <span className="inline-grid size-8 place-items-center rounded-full bg-ink-200 text-xs font-bold text-ink-600 ring-2 ring-surface">
+                    +5
+                  </span>
+                </AvatarGroup>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>התקדמות</CardTitle>
+              </CardHeader>
+              <CardBody className="space-y-3">
+                <Progress value={82} showLabel tone="success" />
+                <Progress value={45} showLabel tone="brand" />
+                <Progress value={15} showLabel tone="warning" />
+              </CardBody>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>תיבות סימון ובחירה</CardTitle>
+              </CardHeader>
+              <CardBody className="flex flex-wrap gap-x-8 gap-y-3">
+                <Checkbox label="פעיל בקטלוג" defaultChecked />
+                <Checkbox label="מוצר מבצע" />
+                <Checkbox label="אזל מהמלאי" disabled />
+                <div className="flex gap-6">
+                  <Radio name="vis" label="ציבורי" defaultChecked />
+                  <Radio name="vis" label="פרטי" />
+                </div>
+                <Tooltip label="מידע נוסף על המוצר">
+                  <Badge tone="brand">רחף עליי</Badge>
+                </Tooltip>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>מצב טעינה</CardTitle>
+              </CardHeader>
+              <CardBody className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="size-12 rounded-xl" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-3.5 w-2/3" />
+                    <Skeleton className="h-3 w-1/3" />
+                  </div>
+                </div>
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-5/6" />
+              </CardBody>
+            </Card>
+          </div>
+        </Section>
+
+        {/* Live demo CTA */}
+        <Section id="demo" title="מסך אפליקציה חי" subtitle="כל הרכיבים יחד במסך PIM אמיתי.">
+          <Card className="overflow-hidden">
+            <CardBody className="flex flex-col items-center justify-between gap-4 bg-brand-gradient sm:flex-row">
+              <div className="text-white">
+                <h3 className="text-xl font-black">מסך ניהול מוצרים</h3>
+                <p className="mt-1 text-white/90">
+                  Sidebar · Header · טבלה · מודאל · התראות · תפריטים — חי ואינטראקטיבי.
+                </p>
+              </div>
+              <Link
+                href="/products"
+                className="focus-ring inline-flex h-12 shrink-0 items-center justify-center rounded-full bg-white px-7 font-display font-bold text-brand-700 shadow-sm transition hover:bg-white/90"
+              >
+                פתח את המסך ←
+              </Link>
+            </CardBody>
+          </Card>
         </Section>
       </main>
 
