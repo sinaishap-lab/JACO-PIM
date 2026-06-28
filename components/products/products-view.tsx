@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/table";
 import { listProducts } from "@/lib/services/product.service";
 import { getSupplierSummaryMap } from "@/lib/services/product-supplier.service";
+import { getBomCostMap } from "@/lib/services/component.service";
+import { resolveProductCost } from "@/lib/cost";
 import type { Product, ProductType } from "@/lib/types";
 
 const supabaseConfigured = Boolean(
@@ -52,12 +54,19 @@ export async function ProductsView({
     string,
     { cost: number | null; supplierLabel: string | null }
   >();
+  let bomCosts = new Map<string, number | null>();
   let loadError: string | null = null;
 
   if (supabaseConfigured) {
     try {
       products = await listProducts(type);
-      summaries = await getSupplierSummaryMap(products.map((p) => p.id));
+      const ids = products.map((p) => p.id);
+      [summaries, bomCosts] = await Promise.all([
+        getSupplierSummaryMap(ids),
+        type === "finished"
+          ? getBomCostMap(ids)
+          : Promise.resolve(new Map<string, number | null>()),
+      ]);
     } catch (err) {
       loadError = err instanceof Error ? err.message : "שגיאה בטעינה";
     }
@@ -116,12 +125,18 @@ export async function ProductsView({
                 <TableHead>שם</TableHead>
                 <TableHead>{priceHeader}</TableHead>
                 <TableHead>ספק עיקרי</TableHead>
-                <TableHead>עלות (ספק)</TableHead>
+                <TableHead>עלות</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {products.map((product) => {
                 const summary = summaries.get(product.id);
+                const resolvedCost = resolveProductCost({
+                  type,
+                  supplierCost: summary?.cost ?? null,
+                  bomCost: bomCosts.get(product.id) ?? null,
+                  manualCost: product.costPrice,
+                });
                 return (
                   <TableRow key={product.id}>
                     <TableCell className="font-mono text-xs">
@@ -144,7 +159,7 @@ export async function ProductsView({
                       {summary?.supplierLabel ?? "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground whitespace-nowrap">
-                      {formatPrice(summary?.cost ?? null)}
+                      {formatPrice(resolvedCost)}
                     </TableCell>
                   </TableRow>
                 );

@@ -63,10 +63,6 @@ export default async function EditProductPage({
   const customerAttributes = attributes.filter(
     (a) => a.audience === "customer"
   );
-  const preferredLink = productSuppliers.find((l) => l.isPreferred);
-  const preferredSupplierId = preferredLink?.supplierId ?? null;
-  const preferredSupplierSku = preferredLink?.supplierSku ?? null;
-
   const action = updateProductAction.bind(null, id);
 
   return (
@@ -90,14 +86,7 @@ export default async function EditProductPage({
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">פרטי מוצר</h2>
-        <ProductForm
-          action={action}
-          product={product}
-          tree={tree}
-          suppliers={suppliers}
-          preferredSupplierId={preferredSupplierId}
-          preferredSupplierSku={preferredSupplierSku}
-        />
+        <ProductForm action={action} product={product} tree={tree} />
       </section>
 
       <section className="space-y-4 border-t pt-8">

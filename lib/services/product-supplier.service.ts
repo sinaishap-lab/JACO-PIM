@@ -215,52 +215,27 @@ export async function addProductSupplier(
 }
 
 /**
- * Sets a product's primary (preferred) supplier from the product form, together
- * with the supplier's own SKU for this product. Links the supplier if not yet
- * linked, marks it preferred, sets the supplier SKU, and clears the preferred
- * flag on the product's other suppliers. Passing a null supplierId clears the
- * preferred flag entirely.
+ * Marks one of a product's existing suppliers as the preferred (primary) one,
+ * clearing the flag on the others. Does not touch cost or SKU details.
  */
 export async function setPreferredSupplier(
   productId: string,
-  supplierId: string | null,
-  supplierSku: string | null = null
+  supplierId: string
 ): Promise<void> {
   const supabase = await createClient();
 
-  // Clear the preferred flag on all current links for this product.
   const { error: clearErr } = await supabase
     .from("product_suppliers")
     .update({ is_preferred: false })
     .eq("product_id", productId);
   if (clearErr) throw new Error(clearErr.message);
 
-  if (!supplierId) return;
-
-  // Does a link already exist? Keep its cost details; mark preferred + SKU.
-  const { data: existing, error: findErr } = await supabase
+  const { error } = await supabase
     .from("product_suppliers")
-    .select("id")
+    .update({ is_preferred: true })
     .eq("product_id", productId)
-    .eq("supplier_id", supplierId)
-    .maybeSingle();
-  if (findErr) throw new Error(findErr.message);
-
-  if (existing) {
-    const { error } = await supabase
-      .from("product_suppliers")
-      .update({ is_preferred: true, supplier_sku: supplierSku })
-      .eq("id", (existing as { id: string }).id);
-    if (error) throw new Error(error.message);
-  } else {
-    const { error } = await supabase.from("product_suppliers").insert({
-      product_id: productId,
-      supplier_id: supplierId,
-      supplier_sku: supplierSku,
-      is_preferred: true,
-    });
-    if (error) throw new Error(error.message);
-  }
+    .eq("supplier_id", supplierId);
+  if (error) throw new Error(error.message);
 }
 
 export async function removeProductSupplier(rowId: string): Promise<void> {

@@ -152,3 +152,44 @@ export function computeCost(lines: ComponentLine[]): number {
     0
   );
 }
+
+/** Recipe (BOM) cost per product id, for list views. Null if no recipe. */
+export async function getBomCostMap(
+  productIds: string[]
+): Promise<Map<string, number | null>> {
+  const result = new Map<string, number | null>();
+  if (productIds.length === 0) return result;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("product_components")
+    .select("product_id, component_id, quantity")
+    .in("product_id", productIds);
+  if (error) throw new Error(error.message);
+
+  const links =
+    (data as { product_id: string; component_id: string; quantity: number | string }[]) ??
+    [];
+  if (links.length === 0) return result;
+
+  const componentIds = Array.from(new Set(links.map((l) => l.component_id)));
+  const { data: prods } = await supabase
+    .from("products")
+    .select("id, cost_price, content_amount")
+    .in("id", componentIds);
+  const byId = new Map(
+    (prods as { id: string; cost_price: number | string | null; content_amount: number | string | null }[] | null)?.map(
+      (p) => [p.id, p]
+    ) ?? []
+  );
+  const supplierCosts = await getEffectiveCostMap(componentIds);
+
+  for (const l of links) {
+    const p = byId.get(l.component_id);
+    const packageCost = supplierCosts.get(l.component_id) ?? num(p?.cost_price);
+    const unit = unitCostOf(packageCost, num(p?.content_amount));
+    const add = (unit ?? 0) * (num(l.quantity) ?? 0);
+    result.set(l.product_id, (result.get(l.product_id) ?? 0) + add);
+  }
+  return result;
+}

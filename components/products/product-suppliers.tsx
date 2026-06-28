@@ -19,6 +19,7 @@ import {
 import {
   addProductSupplierAction,
   removeProductSupplierAction,
+  setPreferredSupplierAction,
 } from "@/app/(dashboard)/products/actions";
 import type { Supplier } from "@/lib/types";
 
@@ -103,22 +104,43 @@ export function ProductSuppliers({
                     {ils(line.costPrice)}
                   </TableCell>
                   <TableCell className="text-end">
-                    <form
-                      action={removeProductSupplierAction.bind(
-                        null,
-                        productId,
-                        line.id
+                    <div className="flex items-center justify-end gap-1">
+                      {!line.isPreferred && (
+                        <form
+                          action={setPreferredSupplierAction.bind(
+                            null,
+                            productId,
+                            line.supplierId
+                          )}
+                        >
+                          <Button
+                            type="submit"
+                            variant="ghost"
+                            size="icon"
+                            aria-label={`הפוך לראשי: ${line.supplierLabel}`}
+                            title="הפוך לספק ראשי"
+                          >
+                            <Star className="text-muted-foreground size-4" />
+                          </Button>
+                        </form>
                       )}
-                    >
-                      <Button
-                        type="submit"
-                        variant="ghost"
-                        size="icon"
-                        aria-label={`הסר ${line.supplierLabel}`}
+                      <form
+                        action={removeProductSupplierAction.bind(
+                          null,
+                          productId,
+                          line.id
+                        )}
                       >
-                        <Trash2 className="text-destructive" />
-                      </Button>
-                    </form>
+                        <Button
+                          type="submit"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`הסר ${line.supplierLabel}`}
+                        >
+                          <Trash2 className="text-destructive" />
+                        </Button>
+                      </form>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
