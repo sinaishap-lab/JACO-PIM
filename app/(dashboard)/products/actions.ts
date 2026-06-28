@@ -276,6 +276,15 @@ export async function deleteProductAction(id: string): Promise<void> {
   redirect("/products");
 }
 
+/** Deletes one or more products (used by the list's row & bulk delete). */
+export async function deleteProductsAction(ids: string[]): Promise<void> {
+  for (const id of ids) {
+    await deleteProduct(id);
+  }
+  revalidatePath("/products");
+  revalidatePath("/materials");
+}
+
 // ── Bill of materials (recipe) ──────────────────────────────────────────────
 
 export async function addComponentAction(

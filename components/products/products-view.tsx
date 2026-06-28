@@ -9,19 +9,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { listProducts } from "@/lib/services/product.service";
 import { getSupplierSummaryMap } from "@/lib/services/product-supplier.service";
 import { getBomCostMap } from "@/lib/services/component.service";
 import { getSizedCostRangeMap } from "@/lib/services/supplier-variant-sku.service";
 import { resolveProductCost } from "@/lib/cost";
+import {
+  ProductsTable,
+  type ProductRow,
+} from "@/components/products/products-table";
 import type { Product, ProductType } from "@/lib/types";
 
 const supabaseConfigured = Boolean(
@@ -122,62 +118,35 @@ export async function ProductsView({
           </CardContent>
         </Card>
       ) : (
-        <Card className="py-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>מק&quot;ט</TableHead>
-                <TableHead>שם</TableHead>
-                <TableHead>{priceHeader}</TableHead>
-                <TableHead>ספק עיקרי</TableHead>
-                <TableHead>עלות</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.map((product) => {
-                const summary = summaries.get(product.id);
-                const range = costRanges.get(product.id);
-                const resolvedCost = resolveProductCost({
-                  type,
-                  supplierCost: summary?.cost ?? null,
-                  bomCost: bomCosts.get(product.id) ?? null,
-                  manualCost: product.costPrice,
-                });
-                const costDisplay = range
-                  ? range.min === range.max
-                    ? formatPrice(range.min)
-                    : `${formatPrice(range.min)}–${formatPrice(range.max)}`
-                  : formatPrice(resolvedCost);
-                return (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-mono text-xs">
-                      {product.sku ?? "—"}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      <Link
-                        href={`/products/${product.id}`}
-                        className="transition-colors hover:text-primary"
-                      >
-                        {product.name}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground whitespace-nowrap">
-                      {type === "finished"
-                        ? formatPrice(product.salePrice)
-                        : formatPrice(product.costPrice)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {summary?.supplierLabel ?? "—"}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground whitespace-nowrap">
-                      {costDisplay}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </Card>
+        <ProductsTable
+          priceHeader={priceHeader}
+          items={products.map((product): ProductRow => {
+            const summary = summaries.get(product.id);
+            const range = costRanges.get(product.id);
+            const resolvedCost = resolveProductCost({
+              type,
+              supplierCost: summary?.cost ?? null,
+              bomCost: bomCosts.get(product.id) ?? null,
+              manualCost: product.costPrice,
+            });
+            const costDisplay = range
+              ? range.min === range.max
+                ? formatPrice(range.min)
+                : `${formatPrice(range.min)}–${formatPrice(range.max)}`
+              : formatPrice(resolvedCost);
+            return {
+              id: product.id,
+              sku: product.sku ?? "—",
+              name: product.name,
+              price:
+                type === "finished"
+                  ? formatPrice(product.salePrice)
+                  : formatPrice(product.costPrice),
+              supplierLabel: summary?.supplierLabel ?? "—",
+              costDisplay,
+            };
+          })}
+        />
       )}
     </div>
   );
