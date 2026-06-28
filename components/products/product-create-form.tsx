@@ -414,6 +414,12 @@ export function ProductCreateForm({
             אין ספקים. הוסיפו קודם ספקים במסך <b>ספקים</b>.
           </p>
         )}
+        {sized && supplierRows.length > 0 && (
+          <p className="text-muted-foreground text-sm">
+            מחיר העלות נקבע לכל גודל (בקטע &quot;גדלים&quot;), והמק&quot;ט של
+            הספק נקבע לכל וריאנט (בקטע &quot;מק&quot;ט ספק לכל וריאנט&quot;).
+          </p>
+        )}
         {supplierRows.map((row, i) => (
           <div key={i} className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
             <div className="space-y-1.5">
@@ -438,37 +444,41 @@ export function ProductCreateForm({
                 ))}
               </select>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">מחיר עלות (₪)</label>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                value={row.costPrice}
-                onChange={(e) =>
-                  setSupplierRows((rows) =>
-                    rows.map((r, j) =>
-                      j === i ? { ...r, costPrice: e.target.value } : r
+            {!sized && (
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">מחיר עלות (₪)</label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={row.costPrice}
+                  onChange={(e) =>
+                    setSupplierRows((rows) =>
+                      rows.map((r, j) =>
+                        j === i ? { ...r, costPrice: e.target.value } : r
+                      )
                     )
-                  )
-                }
-                placeholder="0.00"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">מק&quot;ט אצל הספק</label>
-              <Input
-                dir="ltr"
-                value={row.supplierSku}
-                onChange={(e) =>
-                  setSupplierRows((rows) =>
-                    rows.map((r, j) =>
-                      j === i ? { ...r, supplierSku: e.target.value } : r
+                  }
+                  placeholder="0.00"
+                />
+              </div>
+            )}
+            {!sized && (
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">מק&quot;ט אצל הספק</label>
+                <Input
+                  dir="ltr"
+                  value={row.supplierSku}
+                  onChange={(e) =>
+                    setSupplierRows((rows) =>
+                      rows.map((r, j) =>
+                        j === i ? { ...r, supplierSku: e.target.value } : r
+                      )
                     )
-                  )
-                }
-              />
-            </div>
+                  }
+                />
+              </div>
+            )}
             <div className="space-y-1.5">
               <label className="text-sm font-medium">שם הספק למוצר</label>
               <Input
