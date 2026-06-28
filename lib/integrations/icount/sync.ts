@@ -95,7 +95,14 @@ function toIcountFields(item: CatalogItem): Record<string, unknown> {
  */
 export async function syncProductsToIcount(): Promise<IcountSyncResult> {
   const items = await buildCatalogItems();
-  const existing = await fetchExistingItems();
+  // Listing existing items is optional — if iCount doesn't expose it, we still
+  // create. (Without it, re-syncing may create duplicates by SKU.)
+  let existing = new Map<string, string | number>();
+  try {
+    existing = await fetchExistingItems();
+  } catch {
+    existing = new Map();
+  }
 
   const result: IcountSyncResult = {
     total: items.length,
@@ -115,7 +122,7 @@ export async function syncProductsToIcount(): Promise<IcountSyncResult> {
         });
         result.updated++;
       } else {
-        await icountRequest("inventory/add", toIcountFields(item));
+        await icountRequest("inventory/create", toIcountFields(item));
         result.created++;
       }
     } catch (err) {
