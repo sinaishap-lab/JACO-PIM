@@ -10,6 +10,8 @@ export interface OrderVariant {
   key: string;
   size: string | null;
   color: string | null;
+  /** The supplier's SKU for this specific variant (falls back to product). */
+  supplierSku: string | null;
 }
 
 export interface OrderProduct {
@@ -17,7 +19,7 @@ export interface OrderProduct {
   productName: string;
   /** Our internal SKU. */
   ourSku: string | null;
-  /** The supplier's own part number for this product. */
+  /** The supplier's product-level part number (fallback). */
   supplierSku: string | null;
   variants: OrderVariant[];
 }
@@ -45,7 +47,7 @@ export async function listSupplierOrderProducts(
     ])
   );
 
-  const [{ data: products }, { data: sizes }, { data: colors }] =
+  const [{ data: products }, { data: sizes }, { data: colors }, { data: vSkus }] =
     await Promise.all([
       supabase.from("products").select("id, name, sku").in("id", productIds),
       supabase
@@ -56,7 +58,26 @@ export async function listSupplierOrderProducts(
         .from("product_colors")
         .select("product_id, value")
         .in("product_id", productIds),
+      supabase
+        .from("supplier_variant_skus")
+        .select("product_id, size_value, color_value, sku")
+        .eq("supplier_id", supplierId)
+        .in("product_id", productIds),
     ]);
+
+  // product_id → (`${size}::${color}` → supplier SKU for that variant)
+  const variantSkuByProduct = new Map<string, Map<string, string>>();
+  for (const v of (vSkus as {
+    product_id: string;
+    size_value: string;
+    color_value: string;
+    sku: string;
+  }[]) ?? []) {
+    const inner =
+      variantSkuByProduct.get(v.product_id) ?? new Map<string, string>();
+    inner.set(`${v.size_value}::${v.color_value}`, v.sku);
+    variantSkuByProduct.set(v.product_id, inner);
+  }
 
   const sizesByProduct = new Map<string, string[]>();
   for (const s of (sizes as { product_id: string; value: string }[]) ?? []) {
@@ -77,18 +98,24 @@ export async function listSupplierOrderProducts(
     .map((p) => {
       const sizeList: (string | null)[] = sizesByProduct.get(p.id) ?? [null];
       const colorList: (string | null)[] = colorsByProduct.get(p.id) ?? [null];
+      const productSku = supplierSkuByProduct.get(p.id) ?? null;
+      const perVariant = variantSkuByProduct.get(p.id);
       const variants: OrderVariant[] = sizeList.flatMap((size) =>
-        colorList.map((color) => ({
-          key: `${p.id}::${size ?? ""}::${color ?? ""}`,
-          size,
-          color,
-        }))
+        colorList.map((color) => {
+          const vKey = `${size ?? ""}::${color ?? ""}`;
+          return {
+            key: `${p.id}::${vKey}`,
+            size,
+            color,
+            supplierSku: perVariant?.get(vKey) ?? productSku,
+          };
+        })
       );
       return {
         productId: p.id,
         productName: p.name,
         ourSku: p.sku,
-        supplierSku: supplierSkuByProduct.get(p.id) ?? null,
+        supplierSku: productSku,
         variants,
       };
     })

@@ -28,6 +28,7 @@ import {
   removeColor,
 } from "@/lib/services/variant.service";
 import { regenerateProductSku } from "@/lib/services/sku.service";
+import { setSupplierVariantSkus } from "@/lib/services/supplier-variant-sku.service";
 
 /** Result returned to the form via useActionState. */
 export type ProductFormState = {
@@ -221,6 +222,25 @@ export async function setPreferredSupplierAction(
 ): Promise<void> {
   await setPreferredSupplier(productId, supplierId);
   await regenerateProductSku(productId);
+  revalidatePath(`/products/${productId}`);
+}
+
+export async function saveSupplierVariantSkusAction(
+  productId: string,
+  supplierId: string,
+  formData: FormData
+): Promise<void> {
+  const entries: { size: string | null; color: string | null; sku: string | null }[] =
+    [];
+  const count = Number(formData.get("count")) || 0;
+  for (let i = 0; i < count; i++) {
+    entries.push({
+      size: toText(formData.get(`size_${i}`)),
+      color: toText(formData.get(`color_${i}`)),
+      sku: toText(formData.get(`sku_${i}`)),
+    });
+  }
+  await setSupplierVariantSkus(productId, supplierId, entries);
   revalidatePath(`/products/${productId}`);
 }
 

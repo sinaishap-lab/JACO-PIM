@@ -50,7 +50,7 @@ export function SupplierOrderForm({
         if (Number.isFinite(n) && n > 0) {
           rows.push({
             productName: p.productName,
-            supplierSku: p.supplierSku,
+            supplierSku: v.supplierSku,
             size: v.size,
             color: v.color,
             qty: n,

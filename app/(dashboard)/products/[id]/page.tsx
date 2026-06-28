@@ -8,6 +8,7 @@ import { ProductAttributes } from "@/components/products/product-attributes";
 import { ProductComponents } from "@/components/products/product-components";
 import { ProductSuppliers } from "@/components/products/product-suppliers";
 import { ProductVariants } from "@/components/products/product-variants";
+import { SupplierVariantSkus } from "@/components/products/supplier-variant-skus";
 import { getProduct } from "@/lib/services/product.service";
 import { listAttributes } from "@/lib/services/attribute.service";
 import { getProductAttributeValues } from "@/lib/services/attribute-value.service";
@@ -16,6 +17,7 @@ import {
   listRawMaterials,
 } from "@/lib/services/component.service";
 import { listProductSuppliers } from "@/lib/services/product-supplier.service";
+import { listSupplierVariantSkus } from "@/lib/services/supplier-variant-sku.service";
 import { listSuppliers } from "@/lib/services/supplier.service";
 import { listClassificationTree } from "@/lib/services/classification.service";
 import { listSizes, listColors } from "@/lib/services/variant.service";
@@ -45,6 +47,7 @@ export default async function EditProductPage({
     tree,
     sizes,
     colors,
+    variantSkuMap,
   ] = await Promise.all([
     listAttributes(),
     getProductAttributeValues(id),
@@ -55,7 +58,23 @@ export default async function EditProductPage({
     listClassificationTree(),
     isFinished ? listSizes(id) : Promise.resolve([]),
     isFinished ? listColors(id) : Promise.resolve([]),
+    listSupplierVariantSkus(id),
   ]);
+
+  // size × color variant rows (handles the case of a single axis or none).
+  const sizeList: (string | null)[] = sizes.length
+    ? sizes.map((s) => s.value)
+    : [null];
+  const colorList: (string | null)[] = colors.length
+    ? colors.map((c) => c.value)
+    : [null];
+  const variantRows = sizeList.flatMap((size) =>
+    colorList.map((color) => ({ size, color }))
+  );
+  const linkedSuppliers = productSuppliers.map((l) => ({
+    supplierId: l.supplierId,
+    supplierLabel: l.supplierLabel,
+  }));
 
   const supplierAttributes = attributes.filter(
     (a) => a.audience === "supplier"
@@ -118,6 +137,23 @@ export default async function EditProductPage({
             colors={colors}
             salePrice={product.salePrice}
             baseSku={product.sku}
+          />
+        </section>
+      )}
+
+      {isFinished && productSuppliers.length > 0 && (
+        <section className="space-y-4 border-t pt-8">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">מק&quot;ט ספק לכל וריאנט</h2>
+            <p className="text-muted-foreground text-sm">
+              המק&quot;ט של כל וריאנט (גודל×צבע) אצל כל ספק. משמש בטופס ההזמנה.
+            </p>
+          </div>
+          <SupplierVariantSkus
+            productId={product.id}
+            suppliers={linkedSuppliers}
+            variants={variantRows}
+            skuMap={variantSkuMap}
           />
         </section>
       )}
