@@ -81,7 +81,7 @@ export async function ProductsView({
     <div className="space-y-6">
       <header className="flex items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+          <h1 className="text-2xl font-black tracking-tight text-brand-gradient w-fit">{title}</h1>
           <p className="text-muted-foreground">{subtitle}</p>
         </div>
         <Button asChild disabled={!supabaseConfigured}>

@@ -41,7 +41,7 @@ export default async function SuppliersPage() {
     <div className="space-y-6">
       <header className="flex items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">ספקים</h1>
+          <h1 className="text-2xl font-black tracking-tight text-brand-gradient w-fit">ספקים</h1>
           <p className="text-muted-foreground">ניהול ספקי המוצרים וחומרי הגלם</p>
         </div>
         <Button asChild disabled={!supabaseConfigured}>

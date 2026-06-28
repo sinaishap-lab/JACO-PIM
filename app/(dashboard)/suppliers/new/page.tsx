@@ -15,7 +15,7 @@ export default function NewSupplierPage() {
           <ArrowRight className="size-4" />
           חזרה לספקים
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight">ספק חדש</h1>
+        <h1 className="text-2xl font-black tracking-tight text-brand-gradient w-fit">ספק חדש</h1>
         <p className="text-muted-foreground">הוספת ספק לרשימה</p>
       </header>
 

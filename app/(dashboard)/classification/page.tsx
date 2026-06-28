@@ -169,7 +169,7 @@ export default async function ClassificationPage() {
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">סיווג</h1>
+        <h1 className="text-2xl font-black tracking-tight text-brand-gradient w-fit">סיווג</h1>
         <p className="text-muted-foreground">
           מחלקה ← תת-מחלקה ← דגם. הקודים משמשים לג&apos;ינרוט המק&quot;ט.
         </p>

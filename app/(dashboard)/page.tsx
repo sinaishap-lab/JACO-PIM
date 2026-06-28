@@ -39,7 +39,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">סקירה כללית</h1>
+        <h1 className="text-2xl font-black tracking-tight text-brand-gradient w-fit">סקירה כללית</h1>
         <p className="text-muted-foreground">
           ברוך הבא ל-JACO-PIM — מערכת לניהול מידע על מוצרים.
         </p>
@@ -48,9 +48,11 @@ export default function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {sections.map(({ href, title, description, icon: Icon }) => (
           <Link key={href} href={href} className="group">
-            <Card className="h-full transition-colors group-hover:border-primary/50">
+            <Card className="h-full transition-all group-hover:border-primary/50 group-hover:shadow-md">
               <CardHeader>
-                <Icon className="text-muted-foreground size-6" />
+                <span className="bg-brand-gradient grid size-11 place-items-center rounded-xl text-white shadow-sm">
+                  <Icon className="size-5" />
+                </span>
                 <CardTitle className="mt-2">{title}</CardTitle>
                 <CardDescription>{description}</CardDescription>
               </CardHeader>

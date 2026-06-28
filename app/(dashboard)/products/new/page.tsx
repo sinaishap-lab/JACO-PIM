@@ -36,7 +36,7 @@ export default async function NewProductPage({
           <ArrowRight className="size-4" />
           {isMaterial ? "חזרה לחומרי גלם" : "חזרה למוצרים"}
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight">
+        <h1 className="text-2xl font-black tracking-tight text-brand-gradient w-fit">
           {isMaterial ? "חומר גלם חדש" : "מוצר חדש"}
         </h1>
         <p className="text-muted-foreground">כל הפרטים במסך אחד</p>
