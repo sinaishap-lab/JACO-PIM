@@ -156,7 +156,7 @@ export async function ProductsView({
                     <TableCell className="font-medium">
                       <Link
                         href={`/products/${product.id}`}
-                        className="hover:underline"
+                        className="transition-colors hover:text-primary"
                       >
                         {product.name}
                       </Link>

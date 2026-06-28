@@ -826,7 +826,7 @@ export function ProductCreateForm({
       )}
 
       <div className="flex gap-2 border-t pt-6">
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending} className="bg-brand-gradient hover:brightness-105">
           {pending ? "שומר…" : "צור מוצר"}
         </Button>
         <Button type="button" variant="outline" asChild>

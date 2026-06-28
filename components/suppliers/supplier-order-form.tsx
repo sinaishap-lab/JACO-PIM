@@ -6,6 +6,7 @@ import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { JacoLogo } from "@/components/brand/jaco-logo";
 import {
   Table,
   TableBody,
@@ -129,10 +130,11 @@ export function SupplierOrderForm({
       </div>
 
       {/* Printable order document — print only */}
-      <div className="hidden print:block">
-        <div className="mb-4 space-y-1">
-          <h1 className="text-xl font-bold">טופס הזמנה</h1>
-          <p className="text-sm">ספק: {supplier.name}</p>
+      <div className="hidden print:block [print-color-adjust:exact] [-webkit-print-color-adjust:exact]">
+        <div className="mb-4 flex items-start justify-between gap-4 border-b pb-3">
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold">טופס הזמנה</h1>
+            <p className="text-sm">ספק: {supplier.name}</p>
           {supplier.contactName && (
             <p className="text-sm">איש קשר: {supplier.contactName}</p>
           )}
@@ -146,7 +148,9 @@ export function SupplierOrderForm({
               תנאי תשלום: {paymentTermsLabels[supplier.paymentTerms]}
             </p>
           )}
-          <p className="text-sm">תאריך: {today}</p>
+            <p className="text-sm">תאריך: {today}</p>
+          </div>
+          <JacoLogo />
         </div>
 
         <table className="w-full border-collapse text-sm">

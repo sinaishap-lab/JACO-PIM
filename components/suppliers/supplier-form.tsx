@@ -165,7 +165,7 @@ export function SupplierForm({
       </div>
 
       <div className="flex gap-2">
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending} className="bg-brand-gradient hover:brightness-105">
           {pending ? "שומר…" : supplier ? "שמירת שינויים" : "צור ספק"}
         </Button>
         <Button type="button" variant="outline" asChild>
