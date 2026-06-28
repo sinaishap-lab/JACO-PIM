@@ -135,6 +135,30 @@
   }
 }
 
+/* --- Motion --------------------------------------------------------------- */
+@keyframes jaco-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes jaco-pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@layer utilities {
+  .animate-fade-in {
+    animation: jaco-fade-in 0.18s ease-out;
+  }
+  .animate-pop-in {
+    animation: jaco-pop-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-pop-in {
+    animation: none;
+  }
+}
+
 /* --- Base ----------------------------------------------------------------- */
 html {
   -webkit-text-size-adjust: 100%;

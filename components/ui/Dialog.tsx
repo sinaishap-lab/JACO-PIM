@@ -60,7 +60,7 @@ export function Dialog({
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-ink-950/40 backdrop-blur-sm"
+        className="absolute inset-0 animate-fade-in bg-ink-950/40 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden
       />
@@ -68,8 +68,7 @@ export function Dialog({
         role="dialog"
         aria-modal="true"
         className={cn(
-          "relative w-full overflow-hidden rounded-2xl bg-surface shadow-lg",
-          "duration-200 animate-in",
+          "relative w-full animate-pop-in overflow-hidden rounded-2xl bg-surface shadow-lg",
           SIZES[size],
           className,
         )}

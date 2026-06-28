@@ -81,7 +81,7 @@ export default function ProductsPage() {
             <span className="pointer-events-none absolute inset-y-0 start-3 grid place-items-center text-ink-400">
               <SearchIcon width={18} height={18} />
             </span>
-            <Input placeholder="חיפוש מוצר או מק״ט…" className="ps-10" />
+            <Input aria-label="חיפוש מוצרים" placeholder="חיפוש מוצר או מק״ט…" className="ps-10" />
           </div>
         }
         actions={
@@ -162,6 +162,7 @@ export default function ProductsPage() {
               <TR>
                 <TH className="w-10">
                   <Checkbox
+                    aria-label="בחר הכל"
                     checked={allChecked}
                     onChange={() => setSelected(allChecked ? new Set() : new Set(rows.map((r) => r.sku)))}
                   />
@@ -181,7 +182,7 @@ export default function ProductsPage() {
                 return (
                   <TR key={p.sku} className={selected.has(p.sku) ? "bg-brand-50/60" : undefined}>
                     <TD>
-                      <Checkbox checked={selected.has(p.sku)} onChange={() => toggle(p.sku)} />
+                      <Checkbox aria-label={`בחר ${p.name}`} checked={selected.has(p.sku)} onChange={() => toggle(p.sku)} />
                     </TD>
                     <TD className="font-mono text-ink-500">{p.sku}</TD>
                     <TD>

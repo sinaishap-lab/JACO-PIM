@@ -6,6 +6,7 @@ import {
   useContext,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
@@ -39,6 +40,17 @@ interface ToastInput {
 
 const ToastCtx = createContext<{ toast: (t: ToastInput) => void } | null>(null);
 
+/* SSR-safe mount flag: false during SSR and the first client render (so the
+   portal isn't part of hydration), true afterwards. Avoids hydration mismatch. */
+const emptySubscribe = () => () => {};
+function useMounted() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+}
+
 export function useToast() {
   const ctx = useContext(ToastCtx);
   if (!ctx) throw new Error("useToast must be used inside <ToastProvider>");
@@ -56,6 +68,7 @@ const TONE_STYLES: Record<Tone, { bar: string; icon: ReactNode }> = {
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([]);
   const idRef = useRef(0);
+  const mounted = useMounted();
 
   const remove = useCallback((id: number) => {
     setItems((prev) => prev.filter((t) => t.id !== id));
@@ -79,7 +92,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastCtx.Provider value={{ toast }}>
       {children}
-      {typeof document !== "undefined" &&
+      {mounted &&
         createPortal(
           <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex flex-col items-center gap-2 p-4 sm:items-end">
             {items.map((t) => {
@@ -88,7 +101,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 <div
                   key={t.id}
                   role="status"
-                  className="pointer-events-auto flex w-full max-w-sm items-start gap-3 overflow-hidden rounded-xl border border-border bg-surface p-4 shadow-lg"
+                  className="pointer-events-auto flex w-full max-w-sm animate-pop-in items-start gap-3 overflow-hidden rounded-xl border border-border bg-surface p-4 shadow-lg"
                 >
                   <span className={cn("mt-0.5 h-full w-1 shrink-0 self-stretch rounded-full", tone.bar)} />
                   {tone.icon && <span className="mt-0.5 shrink-0">{tone.icon}</span>}
