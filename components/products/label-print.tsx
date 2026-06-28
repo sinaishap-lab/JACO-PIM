@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { JacoLogo, JacoMark } from "@/components/brand/jaco-logo";
+import { JacoMark } from "@/components/brand/jaco-logo";
 import { code128 } from "@/lib/barcode";
+import { DEFAULT_LABEL_CONFIG, type LabelConfig } from "@/lib/label-config";
+import { LabelSticker, formatPrice } from "@/components/products/label-sticker";
 
 export interface LabelVariant {
   sku: string;
@@ -51,30 +53,15 @@ function Barcode({
   );
 }
 
-function formatPrice(price: number | null): string {
-  if (price == null) return "";
-  return `₪${price.toLocaleString("he-IL")}`;
-}
-
-/** A single small product sticker. */
-function Sticker({ v }: { v: LabelVariant }) {
-  return (
-    <div className="label">
-      <JacoLogo className="label-logo" />
-      <div className="label-name">{v.name}</div>
-      {v.size && <div className="label-size">{v.size}</div>}
-      <Barcode value={v.sku} />
-      <div className="label-sku" dir="ltr">
-        {v.sku}
-      </div>
-      <div className="label-price">{formatPrice(v.price)}</div>
-    </div>
-  );
-}
-
 // ── Small product labels ─────────────────────────────────────────────────────
 
-function ProductLabels({ variants }: { variants: LabelVariant[] }) {
+function ProductLabels({
+  variants,
+  config,
+}: {
+  variants: LabelVariant[];
+  config: LabelConfig;
+}) {
   const [qty, setQty] = useState<Record<string, number>>(() =>
     Object.fromEntries(variants.map((v) => [v.sku, 1]))
   );
@@ -151,7 +138,7 @@ function ProductLabels({ variants }: { variants: LabelVariant[] }) {
 
       <div className="label-sheet print-area hidden print:block">
         {toPrint.map((v, i) => (
-          <Sticker key={i} v={v} />
+          <LabelSticker key={i} data={v} config={config} />
         ))}
       </div>
     </div>
@@ -250,9 +237,11 @@ function BoxLabel({ product }: { product: LabelProduct }) {
 export function LabelPrint({
   variants,
   product,
+  config = DEFAULT_LABEL_CONFIG,
 }: {
   variants: LabelVariant[];
   product: LabelProduct;
+  config?: LabelConfig;
 }) {
   const [mode, setMode] = useState<"product" | "box">("product");
 
@@ -278,7 +267,7 @@ export function LabelPrint({
       </div>
 
       {mode === "product" ? (
-        <ProductLabels variants={variants} />
+        <ProductLabels variants={variants} config={config} />
       ) : (
         <BoxLabel product={product} />
       )}

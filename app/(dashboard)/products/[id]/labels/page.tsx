@@ -9,6 +9,8 @@ import {
 import { getProduct } from "@/lib/services/product.service";
 import { listSizes, listColors } from "@/lib/services/variant.service";
 import { listProductImages } from "@/lib/services/product-image.service";
+import { getSettings } from "@/lib/services/settings.service";
+import { parseLabelConfig, LABEL_CONFIG_KEY } from "@/lib/label-config";
 import { generateVariantSku } from "@/lib/sku";
 
 export const dynamic = "force-dynamic";
@@ -23,13 +25,17 @@ export default async function ProductLabelsPage({
   if (!product) notFound();
 
   const isFinished = product.type === "finished";
-  const [sizes, colors, images] = await Promise.all([
+  const [sizes, colors, images, settings] = await Promise.all([
     isFinished ? listSizes(id) : Promise.resolve([]),
     isFinished ? listColors(id) : Promise.resolve([]),
     listProductImages(id),
+    getSettings([LABEL_CONFIG_KEY]).catch(() => ({})),
   ]);
   const primaryImage =
     images.find((im) => im.isPrimary)?.url ?? images[0]?.url ?? null;
+  const labelConfig = parseLabelConfig(
+    (settings as Record<string, string | null>)[LABEL_CONFIG_KEY]
+  );
 
   const base = product.sku ?? "";
   const variants: LabelVariant[] = [];
@@ -76,6 +82,7 @@ export default async function ProductLabelsPage({
 
       <LabelPrint
         variants={variants}
+        config={labelConfig}
         product={{
           name: product.name,
           sku: base,

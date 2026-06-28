@@ -3,6 +3,11 @@
 import { revalidatePath } from "next/cache";
 
 import { setSettings } from "@/lib/services/settings.service";
+import {
+  LABEL_CONFIG_KEY,
+  parseLabelConfig,
+  type LabelConfig,
+} from "@/lib/label-config";
 
 export type SettingsState = { ok?: boolean; error?: string };
 
@@ -25,6 +30,38 @@ export async function saveIcountSettingsAction(
     if (token) values.icount_token = token;
     if (pass) values.icount_pass = pass;
     await setSettings(values);
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "שגיאה בשמירת ההגדרות",
+    };
+  }
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
+/** Saves the product-sticker design (size + which fields appear). */
+export async function saveLabelSettingsAction(
+  _prev: SettingsState,
+  formData: FormData
+): Promise<SettingsState> {
+  const num = (k: string) => Number(formData.get(k));
+  const on = (k: string) => formData.get(k) === "on";
+  const config: LabelConfig = parseLabelConfig(
+    JSON.stringify({
+      widthMm: num("widthMm"),
+      heightMm: num("heightMm"),
+      nameFontPt: num("nameFontPt"),
+      priceFontPt: num("priceFontPt"),
+      showLogo: on("showLogo"),
+      showName: on("showName"),
+      showSize: on("showSize"),
+      showBarcode: on("showBarcode"),
+      showSku: on("showSku"),
+      showPrice: on("showPrice"),
+    })
+  );
+  try {
+    await setSettings({ [LABEL_CONFIG_KEY]: JSON.stringify(config) });
   } catch (err) {
     return {
       error: err instanceof Error ? err.message : "שגיאה בשמירת ההגדרות",
