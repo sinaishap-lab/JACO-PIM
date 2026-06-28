@@ -73,6 +73,7 @@ export async function listSupplierOrderProducts(
     color_value: string;
     sku: string;
   }[]) ?? []) {
+    if (!v.sku) continue;
     const inner =
       variantSkuByProduct.get(v.product_id) ?? new Map<string, string>();
     inner.set(`${v.size_value}::${v.color_value}`, v.sku);

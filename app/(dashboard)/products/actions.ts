@@ -245,17 +245,28 @@ export async function createProductAction(
       }
     }
 
-    // Per-variant supplier SKUs (grouped by supplier)
+    // Per-variant supplier SKUs + cost (grouped by supplier)
     const bySupplier = new Map<
       string,
-      { size: string | null; color: string | null; sku: string | null }[]
+      {
+        size: string | null;
+        color: string | null;
+        sku: string | null;
+        cost: number | null;
+      }[]
     >();
     for (const v of parseJsonArray(formData.get("variantSkus"))) {
       const supplierId = strOrNull(v.supplierId);
       const sku = strOrNull(v.sku);
-      if (!supplierId || !sku) continue;
+      const cost = numOrNull(v.cost);
+      if (!supplierId || (!sku && cost == null)) continue;
       const arr = bySupplier.get(supplierId) ?? [];
-      arr.push({ size: strOrNull(v.size), color: strOrNull(v.color), sku });
+      arr.push({
+        size: strOrNull(v.size),
+        color: strOrNull(v.color),
+        sku,
+        cost,
+      });
       bySupplier.set(supplierId, arr);
     }
     for (const [sid, entries] of bySupplier) {
@@ -363,14 +374,19 @@ export async function saveSupplierVariantSkusAction(
   supplierId: string,
   formData: FormData
 ): Promise<void> {
-  const entries: { size: string | null; color: string | null; sku: string | null }[] =
-    [];
+  const entries: {
+    size: string | null;
+    color: string | null;
+    sku: string | null;
+    cost: number | null;
+  }[] = [];
   const count = Number(formData.get("count")) || 0;
   for (let i = 0; i < count; i++) {
     entries.push({
       size: toText(formData.get(`size_${i}`)),
       color: toText(formData.get(`color_${i}`)),
       sku: toText(formData.get(`sku_${i}`)),
+      cost: toPrice(formData.get(`cost_${i}`)),
     });
   }
   await setSupplierVariantSkus(productId, supplierId, entries);

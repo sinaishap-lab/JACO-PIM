@@ -144,9 +144,12 @@ export default async function EditProductPage({
       {isFinished && productSuppliers.length > 0 && (
         <section className="space-y-4 border-t pt-8">
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold">מק&quot;ט ספק לכל וריאנט</h2>
+            <h2 className="text-lg font-semibold">
+              מק&quot;ט ועלות ספק לכל וריאנט
+            </h2>
             <p className="text-muted-foreground text-sm">
-              המק&quot;ט של כל וריאנט (גודל×צבע) אצל כל ספק. משמש בטופס ההזמנה.
+              המק&quot;ט ומחיר העלות של כל וריאנט (גודל×צבע) אצל כל ספק. המק&quot;ט
+              משמש בטופס ההזמנה.
             </p>
           </div>
           <SupplierVariantSkus

@@ -86,6 +86,7 @@ export function ProductCreateForm({
   const [colors, setColors] = useState<ColorRow[]>([]);
   const [components, setComponents] = useState<ComponentRow[]>([]);
   const [variantSku, setVariantSku] = useState<Record<string, string>>({});
+  const [variantCost, setVariantCost] = useState<Record<string, string>>({});
 
   const errorText = "text-destructive text-sm";
 
@@ -116,13 +117,17 @@ export function ProductCreateForm({
   // Serialized collections sent to the server action.
   const variantSkuEntries = linkedSuppliers.flatMap((r) =>
     combos
-      .map((c) => ({
-        supplierId: r.supplierId,
-        size: c.size,
-        color: c.color,
-        sku: variantSku[vKey(r.supplierId, c.size, c.color)] ?? "",
-      }))
-      .filter((e) => e.sku.trim())
+      .map((c) => {
+        const k = vKey(r.supplierId, c.size, c.color);
+        return {
+          supplierId: r.supplierId,
+          size: c.size,
+          color: c.color,
+          sku: variantSku[k] ?? "",
+          cost: variantCost[k] ?? "",
+        };
+      })
+      .filter((e) => e.sku.trim() || e.cost.trim())
   );
 
   const supplierAttrs = attributes.filter((a) => a.audience === "supplier");
@@ -416,8 +421,9 @@ export function ProductCreateForm({
         )}
         {sized && supplierRows.length > 0 && (
           <p className="text-muted-foreground text-sm">
-            מחיר העלות נקבע לכל גודל (בקטע &quot;גדלים&quot;), והמק&quot;ט של
-            הספק נקבע לכל וריאנט (בקטע &quot;מק&quot;ט ספק לכל וריאנט&quot;).
+            מחיר המכירה נקבע לכל גודל (בקטע &quot;גדלים&quot;); מחיר העלות
+            והמק&quot;ט נקבעים לכל וריאנט ולכל ספק (בקטע &quot;מק&quot;ט ועלות
+            ספק לכל וריאנט&quot;).
           </p>
         )}
         {supplierRows.map((row, i) => (
@@ -559,25 +565,8 @@ export function ProductCreateForm({
                     placeholder="10.15"
                   />
                 </div>
-                <div className="w-24 space-y-1">
-                  <label className="text-xs font-medium">קנייה</label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={s.costPrice}
-                    onChange={(e) =>
-                      setSizes((rows) =>
-                        rows.map((r, j) =>
-                          j === i ? { ...r, costPrice: e.target.value } : r
-                        )
-                      )
-                    }
-                    placeholder="0.00"
-                  />
-                </div>
-                <div className="w-24 space-y-1">
-                  <label className="text-xs font-medium">מכירה</label>
+                <div className="w-28 space-y-1">
+                  <label className="text-xs font-medium">מחיר מכירה</label>
                   <Input
                     type="number"
                     step="0.01"
@@ -676,7 +665,9 @@ export function ProductCreateForm({
       {/* ── Per-variant supplier SKUs ── */}
       {sized && hasVariants && linkedSuppliers.length > 0 && (
         <section className="space-y-4 border-t pt-6">
-          <h2 className="text-lg font-semibold">מק&quot;ט ספק לכל וריאנט</h2>
+          <h2 className="text-lg font-semibold">
+            מק&quot;ט ועלות ספק לכל וריאנט
+          </h2>
           {linkedSuppliers.map((sup) => (
             <div key={sup.supplierId} className="space-y-2">
               <h3 className="text-sm font-semibold">
@@ -688,7 +679,7 @@ export function ProductCreateForm({
                     key={vKey(sup.supplierId, c.size, c.color)}
                     className="flex items-center gap-2"
                   >
-                    <span className="text-muted-foreground w-32 text-sm">
+                    <span className="text-muted-foreground w-28 text-sm">
                       {c.size ?? "—"} / {c.color ?? "—"}
                     </span>
                     <Input
@@ -700,6 +691,23 @@ export function ProductCreateForm({
                       }
                       onChange={(e) =>
                         setVariantSku((m) => ({
+                          ...m,
+                          [vKey(sup.supplierId, c.size, c.color)]:
+                            e.target.value,
+                        }))
+                      }
+                    />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      className="h-8 w-28"
+                      placeholder="עלות ₪"
+                      value={
+                        variantCost[vKey(sup.supplierId, c.size, c.color)] ?? ""
+                      }
+                      onChange={(e) =>
+                        setVariantCost((m) => ({
                           ...m,
                           [vKey(sup.supplierId, c.size, c.color)]:
                             e.target.value,
