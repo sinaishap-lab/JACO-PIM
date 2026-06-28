@@ -33,3 +33,21 @@ export async function saveIcountSettingsAction(
   revalidatePath("/settings");
   return { ok: true };
 }
+
+/** Saves the Google AI (Gemini) API key used for the product-photo tool. */
+export async function saveGoogleAiSettingsAction(
+  _prev: SettingsState,
+  formData: FormData
+): Promise<SettingsState> {
+  const key = String(formData.get("google_ai_key") ?? "").trim();
+  try {
+    // Blank = keep existing (write-only secret).
+    if (key) await setSettings({ google_ai_key: key });
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "שגיאה בשמירת ההגדרות",
+    };
+  }
+  revalidatePath("/settings");
+  return { ok: true };
+}

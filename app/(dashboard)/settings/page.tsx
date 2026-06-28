@@ -1,5 +1,6 @@
 import { getSettings } from "@/lib/services/settings.service";
 import { IcountSettingsForm } from "@/components/settings/icount-settings-form";
+import { GoogleAiSettingsForm } from "@/components/settings/google-ai-settings-form";
 
 export const dynamic = "force-dynamic";
 
@@ -8,17 +9,20 @@ export default async function SettingsPage() {
   let user = "";
   let hasPass = false;
   let hasToken = false;
+  let hasGoogleAi = false;
   try {
     const s = await getSettings([
       "icount_token",
       "icount_cid",
       "icount_user",
       "icount_pass",
+      "google_ai_key",
     ]);
     cid = s.icount_cid ?? "";
     user = s.icount_user ?? "";
     hasPass = Boolean(s.icount_pass || process.env.ICOUNT_PASS);
     hasToken = Boolean(s.icount_token || process.env.ICOUNT_TOKEN);
+    hasGoogleAi = Boolean(s.google_ai_key || process.env.GOOGLE_AI_API_KEY);
   } catch {
     // settings table may not exist yet — show empty form.
   }
@@ -46,6 +50,16 @@ export default async function SettingsPage() {
           hasPass={hasPass}
           hasToken={hasToken}
         />
+      </section>
+
+      <section className="space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold">Google AI (Gemini)</h2>
+          <p className="text-muted-foreground text-sm">
+            מפתח ל-AI שהופך צילום טלפון לתמונת מוצר מקצועית (רקע לבן + צל).
+          </p>
+        </div>
+        <GoogleAiSettingsForm hasKey={hasGoogleAi} />
       </section>
     </div>
   );

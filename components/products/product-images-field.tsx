@@ -1,10 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Star, Trash2, Upload } from "lucide-react";
+import { Sparkles, Star, Trash2, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
+import { enhanceProductPhotoAction } from "@/app/(dashboard)/products/ai-actions";
 
 export interface ProductImageRow {
   url: string;
@@ -24,8 +25,10 @@ export function ProductImagesField({
       : []
   );
   const [uploading, setUploading] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const aiInputRef = useRef<HTMLInputElement>(null);
 
   // Guarantee exactly one primary image.
   const normalize = (arr: ProductImageRow[]): ProductImageRow[] => {
@@ -60,6 +63,42 @@ export function ProductImagesField({
     }
   };
 
+  // Reads a File as raw base64 (no data: prefix).
+  const fileToBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = String(reader.result);
+        resolve(result.slice(result.indexOf(",") + 1));
+      };
+      reader.onerror = () => reject(new Error("שגיאה בקריאת הקובץ"));
+      reader.readAsDataURL(file);
+    });
+
+  // Phone photo → professional product photo (white background + shadow) via AI.
+  const handleAiPhoto = async (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file) return;
+    setError(null);
+    setAiBusy(true);
+    try {
+      const base64 = await fileToBase64(file);
+      const res = await enhanceProductPhotoAction({
+        base64,
+        mimeType: file.type || "image/jpeg",
+      });
+      if (res.error) throw new Error(res.error);
+      if (res.url) {
+        setImages((prev) => normalize([...prev, { url: res.url!, isPrimary: false }]));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "שגיאה בעיצוב התמונה");
+    } finally {
+      setAiBusy(false);
+      if (aiInputRef.current) aiInputRef.current.value = "";
+    }
+  };
+
   const setPrimary = (url: string) =>
     setImages((prev) => prev.map((i) => ({ ...i, isPrimary: i.url === url })));
 
@@ -75,16 +114,26 @@ export function ProductImagesField({
         <Button
           type="button"
           variant="outline"
-          disabled={uploading}
+          disabled={uploading || aiBusy}
           onClick={() => inputRef.current?.click()}
         >
           <Upload className="size-4" />
           {uploading ? "מעלה…" : "העלאת תמונות"}
         </Button>
-        <span className="text-muted-foreground text-xs">
-          התמונה הראשית מסומנת בכוכב — תופיע על מדבקת הארגז
-        </span>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={uploading || aiBusy}
+          onClick={() => aiInputRef.current?.click()}
+        >
+          <Sparkles className="size-4" />
+          {aiBusy ? "מעצב…" : "צילום → תמונת מוצר (AI)"}
+        </Button>
       </div>
+      <p className="text-muted-foreground text-xs">
+        התמונה הראשית מסומנת בכוכב — תופיע על מדבקת הארגז. כפתור ה-AI הופך צילום
+        טלפון לתמונת מוצר על רקע לבן עם צל.
+      </p>
       <input
         ref={inputRef}
         type="file"
@@ -92,6 +141,14 @@ export function ProductImagesField({
         multiple
         hidden
         onChange={(e) => handleFiles(e.target.files)}
+      />
+      <input
+        ref={aiInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        hidden
+        onChange={(e) => handleAiPhoto(e.target.files)}
       />
 
       {error && <p className="text-destructive text-sm">{error}</p>}
