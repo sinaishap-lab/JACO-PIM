@@ -255,3 +255,60 @@
     print-color-adjust: exact;
   }
 }
+
+/* ============================================================================
+   Classification flow-chart tree — connector lines + node cards (RTL-aware).
+   ========================================================================== */
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: max-content;
+  padding: 0.25rem;
+}
+.node-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: var(--card);
+  padding: 0.3rem 0.6rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+}
+.node-card:hover {
+  border-color: color-mix(in oklab, var(--brand-orange) 50%, var(--border));
+}
+.tree-children {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-inline-start: 2rem;
+  margin-top: 0.5rem;
+}
+.tree-children > .tree-node {
+  position: relative;
+  padding-inline-start: 2rem;
+}
+/* Elbow: vertical down from the parent spine, then a horizontal line into the card. */
+.tree-children > .tree-node::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: -0.5rem;
+  width: 2rem;
+  height: 1.6rem;
+  border-inline-start: 2px solid var(--border);
+  border-block-end: 2px solid var(--border);
+  border-end-start-radius: 10px;
+}
+/* Continue the vertical spine down to the next sibling (skipped on the last child). */
+.tree-children > .tree-node:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: -0.5rem;
+  inset-block-end: -0.5rem;
+  border-inline-start: 2px solid var(--border);
+}
