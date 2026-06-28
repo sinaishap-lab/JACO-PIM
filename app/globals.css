@@ -280,35 +280,38 @@
 .node-card:hover {
   border-color: color-mix(in oklab, var(--brand-orange) 50%, var(--border));
 }
+/* Vertical tree that branches to the LEFT: the spine sits on the right of each
+   children block (under the parent) and child cards extend leftward. Physical
+   `right`/`margin-right` keep this stable regardless of RTL resolution. */
 .tree-children {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-inline-start: 2rem;
+  margin-right: 2rem;
   margin-top: 0.5rem;
 }
 .tree-children > .tree-node {
   position: relative;
-  padding-inline-start: 2rem;
+  padding-right: 2rem;
 }
 /* Elbow: vertical down from the parent spine, then a horizontal line into the card. */
 .tree-children > .tree-node::before {
   content: "";
   position: absolute;
-  inset-inline-start: 0;
-  inset-block-start: -0.5rem;
+  right: 0;
+  top: -0.5rem;
   width: 2rem;
   height: 1.6rem;
-  border-inline-start: 2px solid var(--border);
-  border-block-end: 2px solid var(--border);
-  border-end-start-radius: 10px;
+  border-right: 2px solid var(--border);
+  border-bottom: 2px solid var(--border);
+  border-bottom-right-radius: 10px;
 }
 /* Continue the vertical spine down to the next sibling (skipped on the last child). */
 .tree-children > .tree-node:not(:last-child)::after {
   content: "";
   position: absolute;
-  inset-inline-start: 0;
-  inset-block-start: -0.5rem;
-  inset-block-end: -0.5rem;
-  border-inline-start: 2px solid var(--border);
+  right: 0;
+  top: -0.5rem;
+  bottom: -0.5rem;
+  border-right: 2px solid var(--border);
 }
