@@ -28,8 +28,15 @@ export async function enhanceProductPhotoAction(input: {
     const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
     return { url: data.publicUrl };
   } catch (err) {
-    return {
-      error: err instanceof Error ? err.message : "שגיאה בעיצוב התמונה",
-    };
+    const raw = err instanceof Error ? err.message : "שגיאה בעיצוב התמונה";
+    // Translate Google's long quota/billing error into a clear, actionable note.
+    if (/quota|billing|free_tier|limit: 0|RESOURCE_EXHAUSTED/i.test(raw)) {
+      return {
+        error:
+          "מכסת ה-AI חרגה: מודל התמונות של Gemini אינו זמין בחינם. יש להפעיל " +
+          "חיוב (Billing) בפרויקט Google Cloud של מפתח ה-API ולנסות שוב.",
+      };
+    }
+    return { error: raw };
   }
 }
