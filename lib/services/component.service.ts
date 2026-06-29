@@ -24,6 +24,12 @@ export interface RawMaterialOption {
   name: string;
   unitCost: number | null;
   usageUnit: string | null;
+  /** Area pricing (for size-cost calculation). */
+  materialForm: "simple" | "sheet" | "roll";
+  costPrice: number | null;
+  sheetWidthCm: number | null;
+  sheetHeightCm: number | null;
+  wastePercent: number | null;
 }
 
 function num(value: number | string | null | undefined): number | null {
@@ -49,9 +55,14 @@ type RawProductRow = {
   cost_price: number | string | null;
   content_amount: number | string | null;
   usage_unit: string | null;
+  material_form: "simple" | "sheet" | "roll" | null;
+  sheet_width_cm: number | string | null;
+  sheet_height_cm: number | string | null;
+  waste_percent: number | string | null;
 };
 
-const RAW_SELECT = "id, sku, name, cost_price, content_amount, usage_unit";
+const RAW_SELECT =
+  "id, sku, name, cost_price, content_amount, usage_unit, material_form, sheet_width_cm, sheet_height_cm, waste_percent";
 
 /** Returns the recipe lines (raw materials + quantities) of a product. */
 export async function listComponents(
@@ -112,6 +123,11 @@ export async function listRawMaterials(): Promise<RawMaterialOption[]> {
     name: p.name,
     unitCost: unitCostOf(num(p.cost_price), num(p.content_amount)),
     usageUnit: p.usage_unit ?? null,
+    materialForm: p.material_form ?? "simple",
+    costPrice: num(p.cost_price),
+    sheetWidthCm: num(p.sheet_width_cm),
+    sheetHeightCm: num(p.sheet_height_cm),
+    wastePercent: num(p.waste_percent),
   }));
 }
 

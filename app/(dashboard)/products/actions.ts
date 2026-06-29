@@ -105,6 +105,10 @@ function parse(formData: FormData) {
     departmentId: toText(formData.get("departmentId")),
     subDepartmentId: toText(formData.get("subDepartmentId")),
     modelId: toText(formData.get("modelId")),
+    materialForm: toText(formData.get("materialForm")) ?? "simple",
+    sheetWidthCm: toPrice(formData.get("sheetWidthCm")),
+    sheetHeightCm: toPrice(formData.get("sheetHeightCm")),
+    wastePercent: toPrice(formData.get("wastePercent")),
   });
 }
 

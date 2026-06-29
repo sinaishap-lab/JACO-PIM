@@ -51,6 +51,13 @@ export interface Product {
   departmentId: string | null;
   subDepartmentId: string | null;
   modelId: string | null;
+  /** Raw-material area pricing: 'simple' | 'sheet' | 'roll'. */
+  materialForm: "simple" | "sheet" | "roll";
+  /** Sheet/roll width (cm); sheet height (cm) for 'sheet'. */
+  sheetWidthCm: number | null;
+  sheetHeightCm: number | null;
+  /** Waste added to area cost, percent. */
+  wastePercent: number | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -35,6 +35,11 @@ export const productInputSchema = z.object({
   departmentId: z.string().uuid().nullable(),
   subDepartmentId: z.string().uuid().nullable(),
   modelId: z.string().uuid().nullable(),
+  // Raw-material area pricing (sheet/roll).
+  materialForm: z.enum(["simple", "sheet", "roll"]).default("simple"),
+  sheetWidthCm: z.number().positive().nullable(),
+  sheetHeightCm: z.number().positive().nullable(),
+  wastePercent: z.number().min(0, "פחת לא יכול להיות שלילי").max(100).nullable(),
 });
 
 /** Common units a raw material can be consumed in. */

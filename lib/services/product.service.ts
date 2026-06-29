@@ -29,6 +29,10 @@ interface ProductRow {
   department_id: string | null;
   sub_department_id: string | null;
   model_id: string | null;
+  material_form: "simple" | "sheet" | "roll" | null;
+  sheet_width_cm: number | string | null;
+  sheet_height_cm: number | string | null;
+  waste_percent: number | string | null;
   created_at: string;
   updated_at: string;
 }
@@ -56,6 +60,10 @@ function toProduct(row: ProductRow): Product {
     departmentId: row.department_id,
     subDepartmentId: row.sub_department_id,
     modelId: row.model_id,
+    materialForm: row.material_form ?? "simple",
+    sheetWidthCm: toNumber(row.sheet_width_cm),
+    sheetHeightCm: toNumber(row.sheet_height_cm),
+    wastePercent: toNumber(row.waste_percent),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -105,6 +113,10 @@ export async function createProduct(input: ProductInput): Promise<Product> {
       department_id: input.departmentId,
       sub_department_id: input.subDepartmentId,
       model_id: input.modelId,
+      material_form: input.materialForm,
+      sheet_width_cm: input.sheetWidthCm,
+      sheet_height_cm: input.sheetHeightCm,
+      waste_percent: input.wastePercent,
     })
     .select("*")
     .single();
@@ -133,6 +145,10 @@ export async function updateProduct(
       department_id: input.departmentId,
       sub_department_id: input.subDepartmentId,
       model_id: input.modelId,
+      material_form: input.materialForm,
+      sheet_width_cm: input.sheetWidthCm,
+      sheet_height_cm: input.sheetHeightCm,
+      waste_percent: input.wastePercent,
     })
     .eq("id", id)
     .select("*")
