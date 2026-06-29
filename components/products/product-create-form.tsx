@@ -210,6 +210,21 @@ export function ProductCreateForm({
       })
     );
 
+  // Sale price = cost × multiplier (e.g. ×3). Uses each size's current cost,
+  // falling back to the auto-computed cost from the raw material.
+  const [markupStr, setMarkupStr] = useState("");
+  const applyAutoPrices = () =>
+    setSizes((rows) =>
+      rows.map((r) => {
+        const mult = parseFloat(markupStr);
+        if (!(mult > 0)) return r;
+        const cost =
+          parseFloat(r.costPrice) || autoCostForSize(r.value.trim()) || 0;
+        if (!(cost > 0)) return r;
+        return { ...r, price: (cost * mult).toFixed(2) };
+      })
+    );
+
   // Variant combos for the per-variant SKU matrix.
   const sizeVals = sizes.map((s) => s.value.trim()).filter(Boolean);
   const colorVals = colors.map((c) => c.value.trim()).filter(Boolean);
@@ -646,7 +661,7 @@ export function ProductCreateForm({
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-lg font-semibold">גדלים (מחיר לכל גודל)</h2>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {hasAreaMaterial && (
                   <Button
                     type="button"
@@ -658,6 +673,28 @@ export function ProductCreateForm({
                     חשב עלות מחומר גלם
                   </Button>
                 )}
+                <div className="flex items-center gap-1">
+                  <Input
+                    type="number"
+                    step="any"
+                    min="0"
+                    value={markupStr}
+                    onChange={(e) => setMarkupStr(e.target.value)}
+                    placeholder="×3"
+                    className="h-8 w-16"
+                    aria-label="מכפיל מחיר"
+                    dir="ltr"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={applyAutoPrices}
+                    title="מחיר מכירה = עלות × מכפיל"
+                  >
+                    חשב מחיר מכירה
+                  </Button>
+                </div>
                 <Button
                   type="button"
                   variant="outline"
